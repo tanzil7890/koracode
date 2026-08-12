@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "version": "0.0.0",
+  "name": "@browser-use/bcode-browser",
+  "description": "BrowserCode Level-1 code: in-process CDP harness, browser_execute, embedded skills",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsgo --noEmit",
+    "cdp:gen": "bun src/cdp/gen.ts"
+  },
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "effect": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:"
+  }
+}

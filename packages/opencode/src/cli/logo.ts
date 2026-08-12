@@ -1,0 +1,47 @@
+// Original OpenCode TTY logo (for reference / interpolation):
+//   left:  
+//["                   ", 
+// "█▀▀█ █▀▀█ █▀▀█ █▀▀▄", 
+// "█__█ █__█ █^^^ █__█", 
+// "▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀~~▀"]
+//   right: 
+//["             ▄     ", 
+// "█▀▀▀ █▀▀█ █▀▀█ █▀▀█", 
+// "█___ █__█ █__█ █^^^", 
+// "▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀"]
+// (spells OPEN | CODE, split 4+4, with cursor mark on top of right side)
+//
+// Substitution codes (see ui.ts draw()):
+//   _  -> colored bg space (letter interior)
+//   ^  -> fg+bg half-block ▀ (crossbars: E, B, S)
+//   ~  -> shadow half-block ▀ (rounded curves: N, D)
+//   █ ▀ ▄ and anything else -> fg-colored pass-through
+export const logo = {
+  left: [
+    "▄                                 ",
+    "█▀▀█ █▀▀▄ █▀▀█ █  █ █▀▀▀ █▀▀█ █▀▀▄",
+    "█__█ █___ █__█ █▐▌█ ^^^█ █^^^ █___",
+    "▀▀▀▀ ▀~~~ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀~~~",
+  ],
+  right: [
+    "             ▄     ",
+    "█▀▀▀ █▀▀█ █▀▀█ █▀▀█",
+    "█___ █__█ █__█ █^^^",
+    "▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀",
+  ],
+}
+
+export const go = {
+  left: [
+    "    ",
+    "█▀▀▀", 
+    "█_^█", 
+    "▀▀▀▀"],
+  right: [
+    "    ", 
+    "█▀▀█", 
+    "█__█", 
+    "▀▀▀▀"],
+}
+
+export const marks = "_^~,"

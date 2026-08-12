@@ -1,0 +1,14 @@
+# GitGuardian config — https://docs.gitguardian.com/internal-repositories-monitoring/integrations/source-code-managers/github
+#
+# We mirror `.gitleaksignore` here. Both files exist because gitleaks and
+# GitGuardian are separate scanners with their own ignore mechanisms.
+#
+# The `packages/http-recorder/test/record-replay.test.ts` file contains
+# intentionally-fake API-key-shaped strings used as fixtures asserting the
+# http-recorder's `secretFindings()` redaction logic works. The fixtures
+# are not real credentials and the package (`@opencode-ai/http-recorder`)
+# is upstream-only dev/test code — not a dependency of anything we ship
+# (`browsercode-core`, `bcode-browser`, `bcode-laminar`).
+version: 2
+paths-ignore:
+  - "packages/http-recorder/test/record-replay.test.ts"

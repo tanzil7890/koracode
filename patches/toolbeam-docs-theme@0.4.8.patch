@@ -1,0 +1,15 @@
+diff --git a/package.json b/package.json
+index 04cb0f7f1265123ea3319a78527c42155fca7fbf..3d3385ff2131cf9975d8d2619715d08cc771a9ce 100644
+--- a/package.json
++++ b/package.json
+@@ -24,7 +24,7 @@
+     "typescript": "^5.5.4"
+   },
+   "peerDependencies": {
+-    "@astrojs/starlight": "^0.34.3",
+-    "astro": "^5.7.13"
++    "@astrojs/starlight": "^0.34.3 || ^0.40.0",
++    "astro": "^5.7.13 || ^6.4.5"
+   }
+ }
+\ No newline at end of file

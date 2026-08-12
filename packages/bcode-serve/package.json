@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "version": "0.0.0",
+  "name": "@browser-use/bcode-serve",
+  "description": "Serve-only bcode binary variant for headless containers",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsgo --noEmit",
+    "build": "bun run script/build.ts"
+  },
+  "dependencies": {
+    "@browser-use/bcode-browser": "workspace:*",
+    "@browser-use/browsercode-core": "workspace:*",
+    "@opencode-ai/core": "workspace:*",
+    "@opencode-ai/script": "workspace:*",
+    "yargs": "18.0.0"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@types/yargs": "17.0.33"
+  }
+}

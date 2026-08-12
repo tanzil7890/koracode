@@ -1,0 +1,193 @@
+name: release
+
+# Build the bcode CLI for every platform we ship and attach the archives to
+# the GitHub Release matching the pushed tag.
+#
+# Trigger:
+#   - Push a tag matching `v*` (e.g. `v0.0.3`, `v0.1.9-rc2`).
+#
+# Tag-name convention:
+#   - Stable: bare semver `vX.Y.Z` (e.g. `v0.1.9`). Marked `--latest` so
+#     install.sh's `/releases/latest` lookup resolves it.
+#   - Prerelease: hyphen-suffixed `vX.Y.Z-<thing>` (e.g. `v0.1.9-rc2`,
+#     `v0.2.0-beta1`). Marked `--prerelease` so install.sh skips it.
+#
+# Behaviour:
+#   1. Reuses the existing `packages/opencode/script/build.ts` matrix
+#      (linux x64/arm64, darwin x64/arm64, win32 x64/arm64; baseline + musl
+#      variants where applicable).
+#   2. Bun cross-compiles every target from a single Linux runner.
+#   3. With `OPENCODE_RELEASE=1`, `build.ts` archives each target as
+#      `dist/bcode-<os>-<arch>...{.tar.gz,.zip}` and uploads via `gh release
+#      upload --clobber`.
+#
+# Pre-condition: if a Release for the tag doesn't already exist this workflow
+# creates one (with the correct prerelease flag derived from the tag name).
+# If one already exists its flags are not touched — fix manually via
+# `gh release edit` if needed.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build (must already exist as a Release)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    if: github.repository == 'browser-use/browsercode'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Resolve tag + version
+        id: ver
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Building tag=${TAG} version=${VERSION}"
+
+      - name: Verify tag is reachable from main
+        # Releases must be cut from `main`. Tagging a feature branch (e.g. when
+        # a stacked PR has merged into a parent feature branch but not yet into
+        # `main`) silently produces a release whose contents diverge from the
+        # canonical history. Precedent: v0.0.8/v0.0.9 were tagged from
+        # feat/embed-lmnr-key after PR #33 merged into the feature branch
+        # (not into main); main moved on without it and the bcode-laminar
+        # package had to be re-landed in PR #39. This guard fails the release
+        # before any binaries are uploaded.
+        #
+        # Resolves the tag name to a commit SHA via `git rev-parse` rather than
+        # using `$GITHUB_SHA`. For `push: tags` the two are equivalent, but for
+        # `workflow_dispatch` with `inputs.tag` `$GITHUB_SHA` is the dispatch
+        # ref's HEAD (typically main), not the selected tag's commit — using it
+        # would let a feature-branch tag pass the check trivially.
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          git fetch origin main --depth=1
+          TAG_SHA=$(git rev-parse -q --verify "refs/tags/${TAG}^{commit}") || {
+            echo "::error::Tag ${TAG} does not exist locally. Create the tag on a main commit first (e.g. \`gh release create ${TAG} --target main\`), then re-run."
+            exit 1
+          }
+          if ! git merge-base --is-ancestor "$TAG_SHA" origin/main; then
+            echo "::error::Tag ${TAG} points at $TAG_SHA which is not reachable from origin/main. Release tags must be cut from main."
+            exit 1
+          fi
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Ensure GitHub Release exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          # `build.ts` uploads via `gh release upload --clobber`, which requires
+          # the release to exist.
+          #
+          # Tag-name convention: prereleases use a hyphen suffix (e.g.
+          # `v0.1.9-rc2`, `v0.2.0-beta1`). Stable releases are bare semver
+          # (`v0.1.9`). We map that convention onto GitHub's flags:
+          #   - stable: `--latest` so install.sh's `/releases/latest` resolves it.
+          #   - prerelease: `--prerelease` and NOT `--latest`, so install.sh
+          #     skips it. Otherwise an RC becomes the default install target
+          #     (precedent: v0.1.9-rc2 was unflagged and the one-liner installed
+          #     it).
+          #
+          # Re-runs: if the release already exists (e.g. manually pre-created),
+          # we don't touch its flags here. Fix it manually via `gh release edit`.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            exit 0
+          fi
+          if [[ "$TAG" == *-* ]]; then
+            gh release create "$TAG" \
+              --prerelease \
+              --title "$TAG" \
+              --notes "Automated build for $TAG."
+          else
+            gh release create "$TAG" \
+              --latest \
+              --title "$TAG" \
+              --notes "Automated build for $TAG."
+          fi
+
+      - name: Build all targets and upload to release
+        env:
+          OPENCODE_VERSION: ${{ steps.ver.outputs.version }}
+          OPENCODE_RELEASE: "1"
+          OPENCODE_CHANNEL: latest
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Embedded into the binary by build.ts via Bun `define`. Read at
+          # runtime in @browser-use/bcode-browser/telemetry, gated by
+          # DO_NOT_TRACK and any user-supplied LMNR_PROJECT_API_KEY.
+          BCODE_DEFAULT_LMNR_KEY: ${{ secrets.LMNR_PROJECT_API_KEY_OSS }}
+        run: |
+          ./packages/opencode/script/build.ts
+
+      - name: Build serve-only variant and upload to release
+        # Additive: publishes `bcode-linux-{arm64,x64}[-musl]-serve.tar.gz` for
+        # headless containers, from its own package so the upstream-forked
+        # `packages/opencode` and the canonical step above stay untouched.
+        #
+        # `continue-on-error` so this variant can never block a normal release;
+        # its asset names differ, so `--clobber` cannot touch the standard ones.
+        # Invoked via `bun` so a lost executable bit cannot silently disable it.
+        #
+        # No baseline (non-AVX2 x64) target — install-bytecode.sh rejects that
+        # case with a pointer to /install rather than shipping a binary that
+        # SIGILLs.
+        continue-on-error: true
+        env:
+          OPENCODE_VERSION: ${{ steps.ver.outputs.version }}
+          OPENCODE_RELEASE: "1"
+          OPENCODE_CHANNEL: latest
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          BCODE_DEFAULT_LMNR_KEY: ${{ secrets.LMNR_PROJECT_API_KEY_OSS }}
+        run: |
+          # Checkout has no `ref:`, so on `workflow_dispatch` the tree is the
+          # dispatch ref, not the selected tag, while the upload still targets
+          # that tag. Only build when the tree really is the tag. (The canonical
+          # step has the same exposure; fixing it means changing `Checkout` for
+          # the whole job, which is out of scope here.)
+          TAG_SHA=$(git rev-parse -q --verify "refs/tags/${TAG}^{commit}" || true)
+          HEAD_SHA=$(git rev-parse HEAD)
+          if [ "$HEAD_SHA" != "$TAG_SHA" ]; then
+            echo "::warning::Skipped the serve variant: checkout $(git rev-parse --short HEAD) is not tag ${TAG}. Re-run from a state where they match to publish it."
+            exit 0
+          fi
+          bun ./packages/bcode-serve/script/build.ts \
+            --targets linux-arm64,linux-x64,linux-arm64-musl,linux-x64-musl
+
+      - name: Summarise uploaded assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "## Release ${{ steps.ver.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          gh release view "${{ steps.ver.outputs.tag }}" --json assets \
+            --jq '.assets[] | "- " + .name + " (" + (.size|tostring) + " bytes)"' \
+            >> "$GITHUB_STEP_SUMMARY"
