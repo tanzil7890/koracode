@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@browser-use/browsercode",
+  "name": "@koracode/koracode",
   "description": "AI-powered coding agent with first-class browser access",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "dev:stats": "bun sst shell --stage=production -- bun run --cwd packages/stats/app dev",
     "dev:storybook": "bun --cwd packages/storybook storybook",
     "lint": "oxlint",
-    "typecheck": "bun turbo typecheck --filter='@browser-use/browsercode-core...' --filter='@browser-use/bcode-browser' --filter='@browser-use/bcode-laminar' --filter='@browser-use/bcode-serve'",
+    "typecheck": "bun turbo typecheck --filter='@koracode/koracode-core...' --filter='@koracode/kcode-browser' --filter='@koracode/kcode-laminar' --filter='@koracode/kcode-serve'",
     "upgrade-opentui": "bun run script/upgrade-opentui.ts",
     "postinstall": "bun run --cwd packages/core fix-node-pty",
     "prepare": "husky",
@@ -118,7 +118,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/browser-use/browsercode"
+    "url": "https://github.com/browser-use/koracode"
   },
   "license": "MIT",
   "prettier": {

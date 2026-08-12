@@ -8,7 +8,7 @@
 # http-recorder's `secretFindings()` redaction logic works. The fixtures
 # are not real credentials and the package (`@opencode-ai/http-recorder`)
 # is upstream-only dev/test code — not a dependency of anything we ship
-# (`browsercode-core`, `bcode-browser`, `bcode-laminar`).
+# (`koracode-core`, `kcode-browser`, `kcode-laminar`).
 version: 2
 paths-ignore:
   - "packages/http-recorder/test/record-replay.test.ts"

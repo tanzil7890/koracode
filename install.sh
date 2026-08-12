@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 #
-# BrowserCode installer.
+# KoraCode installer.
 #
-# Hosted at https://bcode.sh/install. One-liner:
+# Hosted at https://kcode.sh/install. One-liner:
 #
-#   curl -fsSL https://bcode.sh/install | bash
-#   curl -fsSL https://bcode.sh/install | bash -s -- --version 0.0.3
+#   curl -fsSL https://kcode.sh/install | bash
+#   curl -fsSL https://kcode.sh/install | bash -s -- --version 0.0.3
 #
 # Adapted from anomalyco/opencode's installer (MIT). Differences:
 #
-#   - Pulls assets from `browser-use/browsercode` GitHub Releases.
-#   - Installs to `$HOME/.bcode/bin/bcode`.
-#   - Marks shell-rc edits with `# bcode` so `bcode uninstall` strips them
+#   - Pulls assets from `browser-use/koracode` GitHub Releases.
+#   - Installs to `$HOME/.kcode/bin/kcode`.
+#   - Marks shell-rc edits with `# kcode` so `kcode uninstall` strips them
 #     cleanly (matches PR #12 changes).
 #   - Detects `uv` on PATH and prints a one-line install hint if missing
 #     (required at runtime for `browser_execute`). Does NOT call uv's
 #     installer — chained installers are bad form.
 set -euo pipefail
-APP=bcode
+APP=kcode
 
 MUTED='\033[0;2m'
 RED='\033[0;31m'
@@ -26,7 +26,7 @@ NC='\033[0m'
 
 usage() {
     cat <<EOF
-BrowserCode Installer
+KoraCode Installer
 
 Usage: install.sh [options]
 
@@ -37,9 +37,9 @@ Options:
         --no-modify-path    Don't modify shell config files (.zshrc, .bashrc, etc.)
 
 Examples:
-    curl -fsSL https://bcode.sh/install | bash
-    curl -fsSL https://bcode.sh/install | bash -s -- --version 0.0.3
-    ./install.sh --binary /path/to/bcode
+    curl -fsSL https://kcode.sh/install | bash
+    curl -fsSL https://kcode.sh/install | bash -s -- --version 0.0.3
+    ./install.sh --binary /path/to/kcode
 EOF
 }
 
@@ -82,7 +82,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-INSTALL_DIR=$HOME/.bcode/bin
+INSTALL_DIR=$HOME/.kcode/bin
 mkdir -p "$INSTALL_DIR"
 
 if [ -n "$binary_path" ]; then
@@ -196,8 +196,8 @@ else
     fi
 
     if [ -z "$requested_version" ]; then
-        url="https://github.com/browser-use/browsercode/releases/latest/download/$filename"
-        specific_version=$(curl -s https://api.github.com/repos/browser-use/browsercode/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p')
+        url="https://github.com/browser-use/koracode/releases/latest/download/$filename"
+        specific_version=$(curl -s https://api.github.com/repos/browser-use/koracode/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p')
 
         if [[ $? -ne 0 || -z "$specific_version" ]]; then
             echo -e "${RED}Failed to fetch version information${NC}"
@@ -206,13 +206,13 @@ else
         fi
     else
         requested_version="${requested_version#v}"
-        url="https://github.com/browser-use/browsercode/releases/download/v${requested_version}/$filename"
+        url="https://github.com/browser-use/koracode/releases/download/v${requested_version}/$filename"
         specific_version=$requested_version
 
-        http_status=$(curl -sI -o /dev/null -w "%{http_code}" "https://github.com/browser-use/browsercode/releases/tag/v${requested_version}")
+        http_status=$(curl -sI -o /dev/null -w "%{http_code}" "https://github.com/browser-use/koracode/releases/tag/v${requested_version}")
         if [ "$http_status" = "404" ]; then
             echo -e "${RED}Error: Release v${requested_version} not found${NC}"
-            echo -e "${MUTED}Available releases: https://github.com/browser-use/browsercode/releases${NC}"
+            echo -e "${MUTED}Available releases: https://github.com/browser-use/koracode/releases${NC}"
             exit 1
         fi
     fi
@@ -233,8 +233,8 @@ print_message() {
 }
 
 check_version() {
-    if command -v bcode >/dev/null 2>&1; then
-        installed_version=$(bcode --version 2>/dev/null || echo "")
+    if command -v kcode >/dev/null 2>&1; then
+        installed_version=$(kcode --version 2>/dev/null || echo "")
 
         if [[ "$installed_version" != "$specific_version" ]]; then
             print_message info "${MUTED}Installed version: ${NC}$installed_version."
@@ -286,7 +286,7 @@ download_with_progress() {
     fi
 
     local tmp_dir=${TMPDIR:-/tmp}
-    local basename="${tmp_dir}/bcode_install_$$"
+    local basename="${tmp_dir}/kcode_install_$$"
     local tracefile="${basename}.trace"
 
     rm -f "$tracefile"
@@ -335,8 +335,8 @@ download_with_progress() {
 }
 
 download_and_install() {
-    print_message info "\n${MUTED}Installing ${NC}bcode ${MUTED}version: ${NC}$specific_version"
-    local tmp_dir="${TMPDIR:-/tmp}/bcode_install_$$"
+    print_message info "\n${MUTED}Installing ${NC}kcode ${MUTED}version: ${NC}$specific_version"
+    local tmp_dir="${TMPDIR:-/tmp}/kcode_install_$$"
     mkdir -p "$tmp_dir"
 
     if [[ "$os" == "windows" ]] || ! [ -t 2 ] || ! download_with_progress "$url" "$tmp_dir/$filename"; then
@@ -349,21 +349,21 @@ download_and_install() {
         unzip -q "$tmp_dir/$filename" -d "$tmp_dir"
     fi
 
-    # Archives contain a single `bcode` binary (or `bcode.exe` on windows)
-    if [ -f "$tmp_dir/bcode.exe" ]; then
-        mv "$tmp_dir/bcode.exe" "$INSTALL_DIR/"
-        chmod 755 "${INSTALL_DIR}/bcode.exe"
+    # Archives contain a single `kcode` binary (or `kcode.exe` on windows)
+    if [ -f "$tmp_dir/kcode.exe" ]; then
+        mv "$tmp_dir/kcode.exe" "$INSTALL_DIR/"
+        chmod 755 "${INSTALL_DIR}/kcode.exe"
     else
-        mv "$tmp_dir/bcode" "$INSTALL_DIR/"
-        chmod 755 "${INSTALL_DIR}/bcode"
+        mv "$tmp_dir/kcode" "$INSTALL_DIR/"
+        chmod 755 "${INSTALL_DIR}/kcode"
     fi
     rm -rf "$tmp_dir"
 }
 
 install_from_binary() {
-    print_message info "\n${MUTED}Installing ${NC}bcode ${MUTED}from: ${NC}$binary_path"
-    cp "$binary_path" "${INSTALL_DIR}/bcode"
-    chmod 755 "${INSTALL_DIR}/bcode"
+    print_message info "\n${MUTED}Installing ${NC}kcode ${MUTED}from: ${NC}$binary_path"
+    cp "$binary_path" "${INSTALL_DIR}/kcode"
+    chmod 755 "${INSTALL_DIR}/kcode"
 }
 
 if [ -n "$binary_path" ]; then
@@ -381,9 +381,9 @@ add_to_path() {
     if grep -Fxq "$command" "$config_file"; then
         print_message info "Command already exists in $config_file, skipping write."
     elif [[ -w $config_file ]]; then
-        echo -e "\n# bcode" >> "$config_file"
+        echo -e "\n# kcode" >> "$config_file"
         echo "$command" >> "$config_file"
-        print_message info "${MUTED}Successfully added ${NC}bcode ${MUTED}to \$PATH in ${NC}$config_file"
+        print_message info "${MUTED}Successfully added ${NC}kcode ${MUTED}to \$PATH in ${NC}$config_file"
     else
         print_message warning "Manually add the directory to $config_file (or similar):"
         print_message info "  $command"
@@ -472,7 +472,7 @@ fi
 if ! command -v uv >/dev/null 2>&1; then
     echo -e ""
     echo -e "${ORANGE}Warning: 'uv' is not on PATH.${NC}"
-    echo -e "${MUTED}bcode's browser_execute tool needs uv to run. Install with:${NC}"
+    echo -e "${MUTED}kcode's browser_execute tool needs uv to run. Install with:${NC}"
     echo -e "  curl -LsSf https://astral.sh/uv/install.sh | sh"
     echo -e "${MUTED}Or see https://docs.astral.sh/uv/getting-started/installation/${NC}"
 fi
@@ -483,11 +483,11 @@ echo -e "${MUTED}█▀▀█ █▀▀▄ █▀▀█ █  █ █▀▀▀ �
 echo -e "${MUTED}█░░█ █░░░ █░░█ █▐▌█ ▀▀▀█ █▀▀▀ █░░░ ${NC}█░░░ █░░█ █░░█ █▀▀▀"
 echo -e "${MUTED}▀▀▀▀ ▀    ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀    ${NC}▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀"
 echo -e ""
-echo -e "${MUTED}BrowserCode ${NC}$specific_version${MUTED} installed to ${NC}$INSTALL_DIR/bcode"
+echo -e "${MUTED}KoraCode ${NC}$specific_version${MUTED} installed to ${NC}$INSTALL_DIR/kcode"
 echo -e ""
 echo -e "cd <project>  ${MUTED}# Open directory${NC}"
-echo -e "bcode         ${MUTED}# Run the agent${NC}"
+echo -e "kcode         ${MUTED}# Run the agent${NC}"
 echo -e ""
-echo -e "${MUTED}Docs:    ${NC}https://github.com/browser-use/browsercode"
-echo -e "${MUTED}Issues:  ${NC}https://github.com/browser-use/browsercode/issues"
+echo -e "${MUTED}Docs:    ${NC}https://github.com/browser-use/koracode"
+echo -e "${MUTED}Issues:  ${NC}https://github.com/browser-use/koracode/issues"
 echo -e ""

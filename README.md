@@ -1,4 +1,4 @@
-<img src="static/browsercode_ascii_banner.svg" alt="browsercode" width="100%">
+<img src="static/koracode_ascii_banner.svg" alt="koracode" width="100%">
 
 # The browser-native agent
 
@@ -12,7 +12,7 @@ The unbounded power of the browser working seamlessly with your code. The agent 
 
 ## Hosted
 
-Run the agent on [Browser Use Cloud](https://cloud.browser-use.com/v4?utm_campaign=browsercode-use-in-cloud&utm_source=github):
+Run the agent on [Browser Use Cloud](https://cloud.browser-use.com/v4?utm_campaign=koracode-use-in-cloud&utm_source=github):
 
 ```sh
 curl -X POST https://api.browser-use.com/api/v4/runs \
@@ -26,7 +26,7 @@ curl -X POST https://api.browser-use.com/api/v4/runs \
 Run this in a terminal that supports bash:
 
 ```sh
-curl -fsSL https://bcode.sh/install | bash
+curl -fsSL https://kcode.sh/install | bash
 ```
 
 ## Usage
@@ -34,30 +34,30 @@ curl -fsSL https://bcode.sh/install | bash
 Open the TUI:
 
 ```sh
-bcode
+kcode
 ```
 
 Run an agent headlessly:
 
 ```sh
-bcode run "On Google flights return all flight details from New York to SF tomorrow"
+kcode run "On Google flights return all flight details from New York to SF tomorrow"
 ```
 
 ### Connect an LLM
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="static/browsercode_best_models_light.png">
-  <source media="(prefers-color-scheme: dark)" srcset="static/browsercode_best_models_dark.png">
-  <img alt="Best BrowserCode models on BU Bench" src="static/browsercode_best_models_light.png" width="100%">
+  <source media="(prefers-color-scheme: light)" srcset="static/koracode_best_models_light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="static/koracode_best_models_dark.png">
+  <img alt="Best KoraCode models on BU Bench" src="static/koracode_best_models_light.png" width="100%">
 </picture>
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="static/browser_harness_by_model_light.png">
   <source media="(prefers-color-scheme: dark)" srcset="static/browser_harness_by_model_dark.png">
-  <img alt="Performance of LLMs with BrowserCode on BU Bench V1" src="static/browser_harness_by_model_light.png" width="100%">
+  <img alt="Performance of LLMs with KoraCode on BU Bench V1" src="static/browser_harness_by_model_light.png" width="100%">
 </picture>
 
-BrowserCode supports any model you can reach with an API key, plus [every provider OpenCode supports](https://opencode.ai/docs/providers).
+KoraCode supports any model you can reach with an API key, plus [every provider OpenCode supports](https://opencode.ai/docs/providers).
 
 Use `/connect` in the TUI, or set provider API keys in your environment.
 
@@ -102,11 +102,11 @@ Browser ability and code-writing ability are deeply connected.
 
 We turned browser interaction into a coding problem; the agent writes JavaScript that drives Chrome directly through CDP. Minimal abstractions. Maximal power to the agent. 
 
-*BrowserCode outperforms every browser agent we have tested it against.*
+*KoraCode outperforms every browser agent we have tested it against.*
 
 ## Architecture
 
-BrowserCode is a fork of [OpenCode](https://github.com/anomalyco/opencode) with a vendored TypeScript port of [Browser Harness](https://github.com/browser-use/browser-harness).
+KoraCode is a fork of [OpenCode](https://github.com/anomalyco/opencode) with a vendored TypeScript port of [Browser Harness](https://github.com/browser-use/browser-harness).
 
 It adds one core browser primitive:
 
@@ -121,18 +121,18 @@ browser_execute(code)
 Reusable browser scripts are written to:
 
 ```text
-.bcode/agent-workspace/
+.kcode/agent-workspace/
 ```
 
-*BrowserCode is not built by the OpenCode team and is not affiliated with OpenCode in any way.*
+*KoraCode is not built by the OpenCode team and is not affiliated with OpenCode in any way.*
 
 ## Telemetry
 
-BrowserCode sends anonymous usage traces to help improve the project. To opt out, set `DO_NOT_TRACK=1` in your environment.
+KoraCode sends anonymous usage traces to help improve the project. To opt out, set `DO_NOT_TRACK=1` in your environment.
 
 ## Contributing
 
-Most upstream contributions belong in one of the projects BrowserCode builds on:
+Most upstream contributions belong in one of the projects KoraCode builds on:
 
 - Browser automation: [browser-use/browser-harness](https://github.com/browser-use/browser-harness)
 - Core coding-agent: [anomalyco/opencode](https://github.com/anomalyco/opencode)
@@ -140,12 +140,12 @@ Most upstream contributions belong in one of the projects BrowserCode builds on:
 Run from source:
 
 ```sh
-git clone https://github.com/browser-use/browsercode.git
-cd browsercode
+git clone https://github.com/browser-use/koracode.git
+cd koracode
 bun install
 bun run --cwd packages/opencode dev
 ```
 
 <hr>
 
-<img src="static/browsercode_ascii_readme.webp" alt="browsercode ascii footer" width="100%">
+<img src="static/koracode_ascii_readme.webp" alt="koracode ascii footer" width="100%">

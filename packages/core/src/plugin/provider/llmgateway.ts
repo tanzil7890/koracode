@@ -15,9 +15,9 @@ export const LLMGatewayPlugin = define({
           if (item.provider.api.url !== "https://api.llmgateway.io/v1") continue
           if (!(yield* integrations.get(Integration.ID.make(item.provider.id)))) continue
           evt.provider.update(item.provider.id, (provider) => {
-            provider.request.headers["HTTP-Referer"] = "https://bcode.sh/"
-            provider.request.headers["X-Title"] = "bcode"
-            provider.request.headers["X-Source"] = "bcode"
+            provider.request.headers["HTTP-Referer"] = "https://kcode.sh/"
+            provider.request.headers["X-Title"] = "kcode"
+            provider.request.headers["X-Source"] = "kcode"
           })
         }
       }),

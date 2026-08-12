@@ -151,7 +151,7 @@ const table = sqliteTable("session", {
 
 ---
 
-## BrowserCode-specific notes
+## KoraCode-specific notes
 
 This repo is a fork of `anomalyco/opencode` that adds browser-use integration.
 The opencode style above still applies to all TS code. A few extras:
@@ -160,10 +160,10 @@ The opencode style above still applies to all TS code. A few extras:
 
 See `UPSTREAM.md` for the canonical version. Short form:
 
-- **Green (add freely):** new files, new packages. `packages/bcode-browser/`
-  is the home for BrowserCode-specific code (decisions §1d).
+- **Green (add freely):** new files, new packages. `packages/kcode-browser/`
+  is the home for KoraCode-specific code (decisions §1d).
 - **Yellow (touch + document):** edits to `packages/opencode/` source go in
-  the maintainer-side `memory/browsercode/EXCEPTIONS.md` (kept outside
+  the maintainer-side `memory/koracode/EXCEPTIONS.md` (kept outside
   this repo with the agent's roadmap/decisions docs) with justification.
   Every Yellow edit is a future merge-conflict candidate, so keep them
   surgical.
@@ -173,21 +173,21 @@ See `UPSTREAM.md` for the canonical version. Short form:
 
 ### Three-level architecture (decisions §1c)
 
-- **Level 1** — pure additions in `packages/bcode-browser/`. No upstream
+- **Level 1** — pure additions in `packages/kcode-browser/`. No upstream
   diff. Always preferred.
 - **Level 2** — thin adapters in `packages/opencode/src/tool/` that wrap
   Level-1 implementations. Small, mostly schema/context translation.
 - **Level 3** — modifications to upstream source. Last resort. Document in
-  the maintainer-side `memory/browsercode/EXCEPTIONS.md`. Always evaluate
+  the maintainer-side `memory/koracode/EXCEPTIONS.md`. Always evaluate
   whether the change could be upstreamed as an extension point first.
 
 ### Vendored harness
 
-`packages/bcode-browser/harness/` is vendored from
+`packages/kcode-browser/harness/` is vendored from
 `browser-use/browser-harness`. Path-allowlist policy (post upstream PR #229
 src-layout reorg):
 
-- `agent-workspace/agent_helpers.py` — editable. Primary BrowserCode
+- `agent-workspace/agent_helpers.py` — editable. Primary KoraCode
   extension surface.
 - `src/browser_harness/*.py` (`daemon.py`, `admin.py`, `helpers.py`,
   `run.py`, `_ipc.py`) — protected. Pull verbatim. If behavior change is
@@ -217,7 +217,7 @@ live in `opencode-sync.md` and `harness-sync.md`.
 ### Filtered typecheck
 
 Root `bun run typecheck` uses a turbo filter limiting to the packages we
-ship (`@browser-use/browsercode-core`, `@browser-use/bcode-browser`,
+ship (`@koracode/koracode-core`, `@koracode/kcode-browser`,
 `@opencode-ai/{shared,plugin,sdk}`). This avoids upstream packages we
 don't build (e.g. `enterprise`, `web`, `console`). The pre-push hook
 runs this filtered command.

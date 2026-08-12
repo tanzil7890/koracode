@@ -8,7 +8,7 @@ import { isRecord } from "@/util/record"
 export type Err = ReturnType<NamedError["toObject"]>
 
 // Upstream OpenCode uses these as sentinels to trigger the TUI upsell
-// banner for opencode.ai subscriptions. BrowserCode does not use the opencode.ai
+// banner for opencode.ai subscriptions. KoraCode does not use the opencode.ai
 // backend, so this code path should never fire. The TUI handler compares for
 // literal equality; leaving these as neutral values keeps the upsell UI dark.
 export const GO_UPSELL_MESSAGE = "Free usage exceeded"
@@ -16,7 +16,7 @@ export const GO_UPSELL_URL = ""
 // Body shown if the TUI ever rendered the action card. Never visible in
 // practice because GO_UPSELL_URL is empty -> DialogRetryAction skips the
 // GO-treatment branch. Kept as an exported const so tests and downstream
-// consumers reference one symbol and don't drift on future BrowserCode-side
+// consumers reference one symbol and don't drift on future KoraCode-side
 // neutralization edits.
 export const FREE_TIER_ACTION_MESSAGE = "Free usage limit reached on this provider."
 export type RetryReason = "free_tier_limit" | "account_rate_limit" | (string & {})

@@ -17,7 +17,7 @@ import PROMPT_TITLE from "./prompt/title.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@opencode-ai/core/global"
-import { Skills } from "@browser-use/bcode-browser/skills"
+import { Skills } from "@koracode/kcode-browser/skills"
 import path from "path"
 import { Plugin } from "@/plugin"
 import { Skill } from "../skill"
@@ -108,7 +108,7 @@ const layer = Layer.effect(
         // and edits with read/write/edit. Resolved at execution time relative
         // to whichever project is open (Phase H hard rule #3 — workspace as
         // plain code, per-project).
-        const agentWorkspaceGlob = "**/.bcode/agent-workspace/**/*"
+        const agentWorkspaceGlob = "**/.kcode/agent-workspace/**/*"
         // Browser-skills tree, materialized at runtime to
         // <Global.Path.data>/skills/ in both dev and compiled modes (so the
         // `{{SKILLS_DIR}}` placeholder in browser-execute-guide.md gets substituted with a
@@ -141,7 +141,7 @@ const layer = Layer.effect(
             ...Object.fromEntries(whitelistedDirs.map((dir) => [dir, "allow"])),
           },
           // Project-relative workspace: read/write/edit all silently allowed
-          // under <projectDir>/.bcode/agent-workspace/. Path matching is done
+          // under <projectDir>/.kcode/agent-workspace/. Path matching is done
           // by `Permission.fromConfig` against the worktree-relative path
           // that edit/write/apply_patch all hand to `ctx.ask({ permission:
           // "edit", ... })`.
@@ -193,7 +193,7 @@ const layer = Layer.effect(
                 },
                 edit: {
                   "*": "deny",
-                  [path.join(".bcode", "plans", "*.md")]: "allow",
+                  [path.join(".kcode", "plans", "*.md")]: "allow",
                   [path.relative(ctx.worktree, path.join(Global.Path.data, path.join("plans", "*.md")))]: "allow",
                 },
               }),

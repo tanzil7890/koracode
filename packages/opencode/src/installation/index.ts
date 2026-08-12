@@ -40,7 +40,7 @@ export const Info = Schema.Struct({
 export type Info = Schema.Schema.Type<typeof Info>
 
 export function userAgent(client = Flag.OPENCODE_CLIENT) {
-  return `browsercode/${InstallationChannel}/${InstallationVersion}/${client}`
+  return `koracode/${InstallationChannel}/${InstallationVersion}/${client}`
 }
 
 export const USER_AGENT = userAgent()
@@ -61,7 +61,7 @@ export class UpgradeFailedError extends Schema.TaggedErrorClass<UpgradeFailedErr
   }
 }
 
-// BrowserCode currently only ships the curl installer (https://bcode.sh/install).
+// KoraCode currently only ships the curl installer (https://kcode.sh/install).
 // npm/brew/scoop/choco branches are stubbed: `method()` only returns "curl"
 // or "unknown", and `latest()` / `upgrade()` short-circuit on "unknown".
 // When we add another distribution channel, restore the corresponding registry
@@ -140,7 +140,7 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
 
     const upgradeCurl = Effect.fnUntraced(
       function* (target: string) {
-        const response = yield* httpOk.execute(HttpClientRequest.get("https://bcode.sh/install"))
+        const response = yield* httpOk.execute(HttpClientRequest.get("https://kcode.sh/install"))
         const body = yield* response.text
         const bodyBytes = new TextEncoder().encode(body)
         const shell = yield* upgradeScriptShell()
@@ -167,11 +167,11 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
           latest: yield* result.latest(),
         }
       }),
-      // Until BrowserCode ships beyond the curl installer, we only detect
+      // Until KoraCode ships beyond the curl installer, we only detect
       // the curl path. Anything else is "unknown" — `upgrade()` handles
       // that with a clear error pointing at the install script.
       method: Effect.fn("Installation.method")(function* () {
-        if (process.execPath.includes(path.join(".bcode", "bin"))) return "curl" as Method
+        if (process.execPath.includes(path.join(".kcode", "bin"))) return "curl" as Method
         if (process.execPath.includes(path.join(".local", "bin"))) return "curl" as Method
         return "unknown" as Method
       }),
@@ -181,7 +181,7 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         // silent for devs running from source.
         if (detectedMethod !== "curl") return InstallationVersion
         const response = yield* httpOk.execute(
-          HttpClientRequest.get("https://api.github.com/repos/browser-use/browsercode/releases/latest").pipe(
+          HttpClientRequest.get("https://api.github.com/repos/browser-use/koracode/releases/latest").pipe(
             HttpClientRequest.acceptJson,
           ),
         )
@@ -192,14 +192,14 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         if (m !== "curl") {
           return yield* new UpgradeFailedError({
             stderr:
-              "Auto-upgrade currently supports only curl-installed bcode. " +
-              "Reinstall with:\n  curl -fsSL https://bcode.sh/install | bash",
+              "Auto-upgrade currently supports only curl-installed kcode. " +
+              "Reinstall with:\n  curl -fsSL https://kcode.sh/install | bash",
           })
         }
         const upgradeResult = yield* upgradeCurl(target)
         if (upgradeResult.code !== 0) {
           return yield* new UpgradeFailedError({
-            stderr: `${upgradeResult.stderr.trimEnd()}\n\nReinstall with:\n  curl -fsSL https://bcode.sh/install | bash`,
+            stderr: `${upgradeResult.stderr.trimEnd()}\n\nReinstall with:\n  curl -fsSL https://kcode.sh/install | bash`,
           })
         }
         yield* Effect.logInfo("upgraded", {

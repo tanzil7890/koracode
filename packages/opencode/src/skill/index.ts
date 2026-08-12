@@ -14,7 +14,7 @@ import { FrontmatterError } from "@opencode-ai/core/v1/config/error"
 import { ConfigMarkdown } from "@/config/markdown"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Glob } from "@opencode-ai/core/util/glob"
-import { Skills as BcodeSkills } from "@browser-use/bcode-browser/skills"
+import { Skills as KcodeSkills } from "@koracode/kcode-browser/skills"
 import { Discovery } from "./discovery"
 import { isRecord } from "@/util/record"
 import { escapeHtml } from "@/util/html"
@@ -217,14 +217,14 @@ const discoverSkills = Effect.fnUntraced(function* (
     }
   }
 
-  // BrowserCode-shipped skills (browser-execute and any future first-party
+  // KoraCode-shipped skills (browser-execute and any future first-party
   // reference docs) live at <dataDir>/skills/<name>/SKILL.md after the
-  // bcode-browser materialization step. Scan unconditionally — the dir may
+  // kcode-browser materialization step. Scan unconditionally — the dir may
   // not exist yet on the very first launch before BrowserExecute.make has
   // run, and that's fine (Glob returns empty).
-  const bcodeSkillsDir = BcodeSkills.skillsDir(global.data)
-  if (yield* fsys.isDir(bcodeSkillsDir)) {
-    yield* scan(state, bcodeSkillsDir, SKILL_PATTERN, { scope: "bcode" })
+  const kcodeSkillsDir = KcodeSkills.skillsDir(global.data)
+  if (yield* fsys.isDir(kcodeSkillsDir)) {
+    yield* scan(state, kcodeSkillsDir, SKILL_PATTERN, { scope: "kcode" })
   }
 
   return {
@@ -274,7 +274,7 @@ const layer = Layer.effect(
     const state = yield* InstanceState.make(
       Effect.fn("Skill.state")(function* () {
         const s: State = { skills: {}, dirs: new Set() }
-        // BrowserCode-specific: the upstream `customize-opencode` built-in
+        // KoraCode-specific: the upstream `customize-opencode` built-in
         // registration was removed here. The skill teaches the model
         // opencode.json / opencode plugin authoring and is irrelevant to
         // browser-driving workflows; eval traces showed it correlated with

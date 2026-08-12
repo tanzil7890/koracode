@@ -368,7 +368,7 @@ export const ProvidersLoginCommand = effectCmd({
     }
     const hooks = yield* pluginSvc.list()
 
-    // No bcode-branded provider yet; sort major providers ahead of long tail without
+    // No kcode-branded provider yet; sort major providers ahead of long tail without
     // putting OpenCode's own "opencode" / "opencode-go" at the top — we're not earning
     // them upsells from our binary.
     const priority: Record<string, number> = {
@@ -450,7 +450,7 @@ export const ProvidersLoginCommand = effectCmd({
       }
 
       yield* Prompt.log.warn(
-        `This only stores a credential for ${provider} - you will need configure it in bcode.json, check the docs for examples.`,
+        `This only stores a credential for ${provider} - you will need configure it in kcode.json, check the docs for examples.`,
       )
     }
 
@@ -459,7 +459,7 @@ export const ProvidersLoginCommand = effectCmd({
         "Amazon Bedrock authentication priority:\n" +
           "  1. Bearer token (AWS_BEARER_TOKEN_BEDROCK or /connect)\n" +
           "  2. AWS credential chain (profile, access keys, IAM roles, EKS IRSA)\n\n" +
-          "Configure via bcode.json options (profile, region, endpoint) or\n" +
+          "Configure via kcode.json options (profile, region, endpoint) or\n" +
           "AWS environment variables (AWS_PROFILE, AWS_REGION, AWS_ACCESS_KEY_ID, AWS_WEB_IDENTITY_TOKEN_FILE).",
       )
     }

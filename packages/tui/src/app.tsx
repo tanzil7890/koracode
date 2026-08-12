@@ -454,14 +454,14 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
     if (!terminalTitleEnabled() || Flag.OPENCODE_DISABLE_TERMINAL_TITLE) return
 
     if (route.data.type === "home") {
-      renderer.setTerminalTitle("BrowserCode")
+      renderer.setTerminalTitle("KoraCode")
       return
     }
 
     if (route.data.type === "session") {
       const session = sync.session.get(route.data.sessionID)
       if (!session || isDefaultTitle(session.title)) {
-        renderer.setTerminalTitle("BrowserCode")
+        renderer.setTerminalTitle("KoraCode")
         return
       }
 
@@ -855,7 +855,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         title: "Open docs",
         category: "System",
         run: () => {
-          open("https://github.com/browser-use/browsercode").catch(() => {})
+          open("https://github.com/browser-use/koracode").catch(() => {})
           dialog.clear()
         },
       },
@@ -1079,7 +1079,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
     await DialogAlert.show(
       dialog,
       "Update Complete",
-      `Successfully updated to BrowserCode v${result.data.version}. Please restart the application.`,
+      `Successfully updated to KoraCode v${result.data.version}. Please restart the application.`,
     )
 
     void exit()

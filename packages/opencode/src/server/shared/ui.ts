@@ -5,7 +5,7 @@ import { createHash } from "node:crypto"
 
 let embeddedUIPromise: Promise<Record<string, string> | null> | undefined
 
-// BrowserCode does not proxy the web UI through app.opencode.ai. If the embedded
+// KoraCode does not proxy the web UI through app.opencode.ai. If the embedded
 // UI bundle is missing (e.g. OPENCODE_DISABLE_EMBEDDED_WEB_UI in dev), requests
 // 404 instead of phoning home to OpenCode's hosted UI.
 
@@ -70,7 +70,7 @@ export function serveUIEffect(
     if (embeddedWebUI) return yield* serveEmbeddedUIEffect(path, services.fs, embeddedWebUI)
 
     // Embedded UI bundle is missing (e.g. OPENCODE_DISABLE_EMBEDDED_WEB_UI=1
-    // in dev). BrowserCode does not proxy the UI through app.opencode.ai.
+    // in dev). KoraCode does not proxy the UI through app.opencode.ai.
     return notFound()
   })
 }

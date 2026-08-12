@@ -17,7 +17,7 @@ import { gitlabAuthPlugin as GitlabAuthPlugin } from "opencode-gitlab-auth"
 import { PoeAuthPlugin } from "opencode-poe-auth"
 import { CloudflareAIGatewayAuthPlugin, CloudflareWorkersAuthPlugin } from "./cloudflare"
 import { AzureAuthPlugin } from "./azure"
-import { LaminarPlugin } from "@browser-use/bcode-laminar"
+import { LaminarPlugin } from "@koracode/kcode-laminar"
 import { DigitalOceanAuthPlugin } from "./digitalocean"
 import { XaiAuthPlugin } from "./xai"
 import { SnowflakeCortexAuthPlugin } from "./snowflake-cortex"
@@ -282,7 +282,7 @@ const layer = Layer.effect(
 
         // Register synchronous shutdown hooks for the top-level finally in
         // src/index.ts. Runs before forceFlush so plugins can end any open
-        // OTel spans (e.g. bcode-laminar's turn span) — the bus-based
+        // OTel spans (e.g. kcode-laminar's turn span) — the bus-based
         // session.idle / server.instance.disposed paths race with scope
         // teardown and don't reliably deliver, so plugins need a direct sync
         // entry point.

@@ -1,6 +1,6 @@
 import { Effect, Schema } from "effect"
 import { HttpClient, HttpClientRequest } from "effect/unstable/http"
-import { FetchUse } from "@browser-use/bcode-browser/fetch-use"
+import { FetchUse } from "@koracode/kcode-browser/fetch-use"
 import { Config } from "@/config/config"
 import { Parser } from "htmlparser2"
 import * as Tool from "./tool"
@@ -53,7 +53,7 @@ export const WebFetchTool = Tool.define(
 
           const timeout = Math.min((params.timeout ?? DEFAULT_TIMEOUT / 1000) * 1000, MAX_TIMEOUT)
 
-          // BrowserCode: route through fetch-use only when BROWSER_USE_API_KEY
+          // KoraCode: route through fetch-use only when BROWSER_USE_API_KEY
           // is set AND the user has opted in via experimental.fetch_use=true.
           // Default is off: enabling adds latency without measurable accuracy gains.
           const useFu = fetchUse.enabled && (yield* config.get()).experimental?.fetch_use === true
@@ -99,7 +99,7 @@ export const WebFetchTool = Tool.define(
                     () =>
                       httpOk.execute(
                         HttpClientRequest.get(params.url).pipe(
-                          HttpClientRequest.setHeaders({ ...headers, "User-Agent": "browsercode" }),
+                          HttpClientRequest.setHeaders({ ...headers, "User-Agent": "koracode" }),
                         ),
                       ),
                   ),

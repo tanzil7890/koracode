@@ -11,8 +11,8 @@ export const ZenmuxPlugin = define({
           if (item.provider.api.package !== "@ai-sdk/openai-compatible") continue
           if (item.provider.api.url !== "https://zenmux.ai/api/v1") continue
           evt.provider.update(item.provider.id, (provider) => {
-            provider.request.headers["HTTP-Referer"] ??= "https://bcode.sh/"
-            provider.request.headers["X-Title"] ??= "bcode"
+            provider.request.headers["HTTP-Referer"] ??= "https://kcode.sh/"
+            provider.request.headers["X-Title"] ??= "kcode"
           })
         }
       }),

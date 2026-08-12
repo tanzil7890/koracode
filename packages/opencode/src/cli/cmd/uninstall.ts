@@ -24,7 +24,7 @@ interface RemovalTargets {
 
 export const UninstallCommand = {
   command: "uninstall",
-  describe: "uninstall bcode and remove all related files",
+  describe: "uninstall kcode and remove all related files",
   builder: (yargs: Argv) =>
     yargs
       .option("keep-config", {
@@ -55,7 +55,7 @@ export const UninstallCommand = {
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
-    prompts.intro("Uninstall BrowserCode")
+    prompts.intro("Uninstall KoraCode")
 
     const method = await Installation.method()
     prompts.log.info(`Installation method: ${method}`)
@@ -212,8 +212,8 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   if (method === "curl" && targets.binary) {
     const binDir = path.dirname(targets.binary)
 
-    if (process.platform === "win32" && binDir.includes(".bcode")) {
-      // bcode/install.sh adds binDir to user PATH on Windows; remove it here.
+    if (process.platform === "win32" && binDir.includes(".kcode")) {
+      // kcode/install.sh adds binDir to user PATH on Windows; remove it here.
       const ps = `$d='${binDir.replace(/'/g, "''")}'; $p=[Environment]::GetEnvironmentVariable('Path','User'); $n=($p -split ';' | Where-Object { $_ -ne $d }) -join ';'; if ($n -ne $p) { [Environment]::SetEnvironmentVariable('Path', $n, 'User') }`
       await Process.run(["powershell.exe", "-NoProfile", "-Command", ps], { nothrow: true })
       prompts.log.step("Removed from user PATH")
@@ -222,7 +222,7 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
     UI.empty()
     prompts.log.message("To finish removing the binary, run:")
     prompts.log.info(`  rm "${targets.binary}"`)
-    if (binDir.includes(".bcode")) {
+    if (binDir.includes(".kcode")) {
       prompts.log.info(`  rmdir "${binDir}" 2>/dev/null`)
     }
   }
@@ -236,7 +236,7 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   }
 
   UI.empty()
-  prompts.log.success("Thank you for using BrowserCode!")
+  prompts.log.success("Thank you for using KoraCode!")
 }
 
 async function getShellConfigFile(): Promise<string | null> {
@@ -273,7 +273,7 @@ async function getShellConfigFile(): Promise<string | null> {
     if (!exists) continue
 
     const content = await Filesystem.readText(file).catch(() => "")
-    if (content.includes("# bcode") || content.includes(".bcode/bin")) {
+    if (content.includes("# kcode") || content.includes(".kcode/bin")) {
       return file
     }
   }
@@ -291,21 +291,21 @@ async function cleanShellConfig(file: string) {
   for (const line of lines) {
     const trimmed = line.trim()
 
-    if (trimmed === "# bcode") {
+    if (trimmed === "# kcode") {
       skip = true
       continue
     }
 
     if (skip) {
       skip = false
-      if (trimmed.includes(".bcode/bin") || trimmed.includes("fish_add_path")) {
+      if (trimmed.includes(".kcode/bin") || trimmed.includes("fish_add_path")) {
         continue
       }
     }
 
     if (
-      (trimmed.startsWith("export PATH=") && trimmed.includes(".bcode/bin")) ||
-      (trimmed.startsWith("fish_add_path") && trimmed.includes(".bcode"))
+      (trimmed.startsWith("export PATH=") && trimmed.includes(".kcode/bin")) ||
+      (trimmed.startsWith("fish_add_path") && trimmed.includes(".kcode"))
     ) {
       continue
     }

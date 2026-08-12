@@ -39,8 +39,8 @@ describe("NvidiaPlugin", () => {
       yield* addPlugin()
       expect((yield* catalog.provider.get(ProviderV2.ID.make("nvidia")))?.request.headers).toEqual({
         Existing: "value",
-        "HTTP-Referer": "https://bcode.sh/",
-        "X-Title": "bcode",
+        "HTTP-Referer": "https://kcode.sh/",
+        "X-Title": "kcode",
         "X-BILLING-INVOKE-ORIGIN": "OpenCode",
       })
       expect((yield* catalog.provider.get(ProviderV2.ID.openrouter))?.request.headers).toEqual({})
@@ -62,8 +62,8 @@ describe("NvidiaPlugin", () => {
       yield* addPlugin()
 
       expect((yield* catalog.provider.get(ProviderV2.ID.make("nvidia")))?.request.headers).toEqual({
-        "HTTP-Referer": "https://bcode.sh/",
-        "X-Title": "bcode",
+        "HTTP-Referer": "https://kcode.sh/",
+        "X-Title": "kcode",
         "X-BILLING-INVOKE-ORIGIN": "OpenCode",
       })
     }),
@@ -88,8 +88,8 @@ describe("NvidiaPlugin", () => {
       yield* addPlugin()
 
       expect((yield* catalog.provider.get(ProviderV2.ID.make("nvidia")))?.request.headers).toEqual({
-        "HTTP-Referer": "https://bcode.sh/",
-        "X-Title": "bcode",
+        "HTTP-Referer": "https://kcode.sh/",
+        "X-Title": "kcode",
         "X-BILLING-INVOKE-ORIGIN": "CustomOrigin",
       })
     }),

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://bcode.sh/theme.json",
+  "$schema": "https://kcode.sh/theme.json",
   "defs": {
     "black": "#100F0F",
     "base950": "#1C1B1A",

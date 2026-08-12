@@ -93,52 +93,6 @@
         "vite-plugin-solid": "catalog:",
       },
     },
-    "packages/bcode-browser": {
-      "name": "@browser-use/bcode-browser",
-      "version": "0.0.0",
-      "dependencies": {
-        "effect": "catalog:",
-        "zod": "catalog:",
-      },
-      "devDependencies": {
-        "@tsconfig/bun": "catalog:",
-        "@types/bun": "catalog:",
-      },
-    },
-    "packages/bcode-laminar": {
-      "name": "@browser-use/bcode-laminar",
-      "version": "0.0.0",
-      "dependencies": {
-        "@grpc/grpc-js": "1.14.4",
-        "@opencode-ai/plugin": "workspace:*",
-        "@opentelemetry/api": "1.9.0",
-        "@opentelemetry/core": "2.9.0",
-        "@opentelemetry/exporter-trace-otlp-grpc": "0.217.0",
-        "@opentelemetry/exporter-trace-otlp-proto": "0.217.0",
-        "@opentelemetry/sdk-node": "0.217.0",
-        "@opentelemetry/sdk-trace-base": "2.9.0",
-      },
-      "devDependencies": {
-        "@tsconfig/bun": "catalog:",
-        "@types/bun": "catalog:",
-      },
-    },
-    "packages/bcode-serve": {
-      "name": "@browser-use/bcode-serve",
-      "version": "0.0.0",
-      "dependencies": {
-        "@browser-use/bcode-browser": "workspace:*",
-        "@browser-use/browsercode-core": "workspace:*",
-        "@opencode-ai/core": "workspace:*",
-        "@opencode-ai/script": "workspace:*",
-        "yargs": "18.0.0",
-      },
-      "devDependencies": {
-        "@tsconfig/bun": "catalog:",
-        "@types/bun": "catalog:",
-        "@types/yargs": "17.0.33",
-      },
-    },
     "packages/cli": {
       "name": "@opencode-ai/cli",
       "version": "1.18.4",
@@ -580,6 +534,52 @@
         "@typescript/native-preview": "catalog:",
       },
     },
+    "packages/kcode-browser": {
+      "name": "@koracode/kcode-browser",
+      "version": "0.0.0",
+      "dependencies": {
+        "effect": "catalog:",
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@tsconfig/bun": "catalog:",
+        "@types/bun": "catalog:",
+      },
+    },
+    "packages/kcode-laminar": {
+      "name": "@koracode/kcode-laminar",
+      "version": "0.0.0",
+      "dependencies": {
+        "@grpc/grpc-js": "1.14.4",
+        "@opencode-ai/plugin": "workspace:*",
+        "@opentelemetry/api": "1.9.0",
+        "@opentelemetry/core": "2.9.0",
+        "@opentelemetry/exporter-trace-otlp-grpc": "0.217.0",
+        "@opentelemetry/exporter-trace-otlp-proto": "0.217.0",
+        "@opentelemetry/sdk-node": "0.217.0",
+        "@opentelemetry/sdk-trace-base": "2.9.0",
+      },
+      "devDependencies": {
+        "@tsconfig/bun": "catalog:",
+        "@types/bun": "catalog:",
+      },
+    },
+    "packages/kcode-serve": {
+      "name": "@koracode/kcode-serve",
+      "version": "0.0.0",
+      "dependencies": {
+        "@koracode/kcode-browser": "workspace:*",
+        "@koracode/koracode-core": "workspace:*",
+        "@opencode-ai/core": "workspace:*",
+        "@opencode-ai/script": "workspace:*",
+        "yargs": "18.0.0",
+      },
+      "devDependencies": {
+        "@tsconfig/bun": "catalog:",
+        "@types/bun": "catalog:",
+        "@types/yargs": "17.0.33",
+      },
+    },
     "packages/llm": {
       "name": "@opencode-ai/llm",
       "version": "1.18.4",
@@ -600,10 +600,10 @@
       },
     },
     "packages/opencode": {
-      "name": "@browser-use/browsercode-core",
+      "name": "@koracode/koracode-core",
       "version": "1.18.4",
       "bin": {
-        "bcode": "./bin/bcode",
+        "kcode": "./bin/kcode",
       },
       "dependencies": {
         "@actions/core": "1.11.1",
@@ -629,13 +629,13 @@
         "@ai-sdk/vercel": "2.0.39",
         "@ai-sdk/xai": "3.0.102",
         "@aws-sdk/credential-providers": "3.1057.0",
-        "@browser-use/bcode-browser": "workspace:*",
-        "@browser-use/bcode-laminar": "workspace:*",
         "@clack/prompts": "1.0.0-alpha.1",
         "@effect/opentelemetry": "catalog:",
         "@effect/platform-node": "catalog:",
         "@ff-labs/fff-bun": "0.9.4",
         "@gitlab/opencode-gitlab-auth": "1.3.3",
+        "@koracode/kcode-browser": "workspace:*",
+        "@koracode/kcode-laminar": "workspace:*",
         "@modelcontextprotocol/sdk": "1.29.0",
         "@octokit/graphql": "9.0.2",
         "@octokit/rest": "catalog:",
@@ -1097,7 +1097,7 @@
       },
       "devDependencies": {
         "@astrojs/check": "0.9.9",
-        "@browser-use/browsercode-core": "workspace:*",
+        "@koracode/koracode-core": "workspace:*",
         "@types/node": "catalog:",
         "typescript": "catalog:",
       },
@@ -1495,14 +1495,6 @@
 
     "@bcoe/v8-coverage": ["@bcoe/v8-coverage@1.0.2", "", {}, "sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA=="],
 
-    "@browser-use/bcode-browser": ["@browser-use/bcode-browser@workspace:packages/bcode-browser"],
-
-    "@browser-use/bcode-laminar": ["@browser-use/bcode-laminar@workspace:packages/bcode-laminar"],
-
-    "@browser-use/bcode-serve": ["@browser-use/bcode-serve@workspace:packages/bcode-serve"],
-
-    "@browser-use/browsercode-core": ["@browser-use/browsercode-core@workspace:packages/opencode"],
-
     "@bufbuild/protobuf": ["@bufbuild/protobuf@2.12.0", "", {}, "sha512-B/XlCaFIP8LOwzo+bz5uFzATYokcwCKQcghqnlfwSmM5eX/qTkvDBnDPs+gXtX/RyjxJ4DRikECcPJbyALA8FA=="],
 
     "@bufbuild/protoplugin": ["@bufbuild/protoplugin@2.12.0", "", { "dependencies": { "@bufbuild/protobuf": "2.12.0", "@typescript/vfs": "^1.6.2", "typescript": "5.4.5" } }, "sha512-ORlDITp8AFUXzIhLRoMCG+ud+D3MPKWb5HQXBoskMMnjeyEjE1H1qLonVNPyOr8lkx3xSfYUo8a0dvOZJVAzow=="],
@@ -1874,6 +1866,14 @@
     "@kobalte/core": ["@kobalte/core@0.13.11", "", { "dependencies": { "@floating-ui/dom": "^1.5.1", "@internationalized/date": "^3.4.0", "@internationalized/number": "^3.2.1", "@kobalte/utils": "^0.9.1", "@solid-primitives/props": "^3.1.8", "@solid-primitives/resize-observer": "^2.0.26", "solid-presence": "^0.1.8", "solid-prevent-scroll": "^0.1.4" }, "peerDependencies": { "solid-js": "^1.8.15" } }, "sha512-hK7TYpdib/XDb/r/4XDBFaO9O+3ZHz4ZWryV4/3BfES+tSQVgg2IJupDnztKXB0BqbSRy/aWlHKw1SPtNPYCFQ=="],
 
     "@kobalte/utils": ["@kobalte/utils@0.9.1", "", { "dependencies": { "@solid-primitives/event-listener": "^2.2.14", "@solid-primitives/keyed": "^1.2.0", "@solid-primitives/map": "^0.4.7", "@solid-primitives/media": "^2.2.4", "@solid-primitives/props": "^3.1.8", "@solid-primitives/refs": "^1.0.5", "@solid-primitives/utils": "^6.2.1" }, "peerDependencies": { "solid-js": "^1.8.8" } }, "sha512-eeU60A3kprIiBDAfv9gUJX1tXGLuZiKMajUfSQURAF2pk4ZoMYiqIzmrMBvzcxP39xnYttgTyQEVLwiTZnrV4w=="],
+
+    "@koracode/kcode-browser": ["@koracode/kcode-browser@workspace:packages/kcode-browser"],
+
+    "@koracode/kcode-laminar": ["@koracode/kcode-laminar@workspace:packages/kcode-laminar"],
+
+    "@koracode/kcode-serve": ["@koracode/kcode-serve@workspace:packages/kcode-serve"],
+
+    "@koracode/koracode-core": ["@koracode/koracode-core@workspace:packages/opencode"],
 
     "@kurkle/color": ["@kurkle/color@0.3.4", "", {}, "sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w=="],
 
@@ -5917,8 +5917,6 @@
 
     "@babel/helper-create-class-features-plugin/semver": ["semver@6.3.1", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA=="],
 
-    "@browser-use/browsercode-core/semver": ["semver@7.8.5", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA=="],
-
     "@bufbuild/protoplugin/typescript": ["typescript@5.4.5", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ=="],
 
     "@cloudflare/vite-plugin/ws": ["ws@8.18.0", "", { "peerDependencies": { "bufferutil": "^4.0.1", "utf-8-validate": ">=5.0.2" }, "optionalPeers": ["bufferutil", "utf-8-validate"] }, "sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw=="],
@@ -5976,6 +5974,8 @@
     "@jsx-email/doiuse-email/htmlparser2": ["htmlparser2@9.1.0", "", { "dependencies": { "domelementtype": "^2.3.0", "domhandler": "^5.0.3", "domutils": "^3.1.0", "entities": "^4.5.0" } }, "sha512-5zfg6mHUoaer/97TxnGpxmbR7zJtPwIYFMZ/H5ucTlPZhKvtum05yiPK3Mgai3a0DyVxv7qYqoweaEd2nrYQzQ=="],
 
     "@kobalte/core/solid-presence": ["solid-presence@0.1.8", "", { "dependencies": { "@corvu/utils": "~0.4.0" }, "peerDependencies": { "solid-js": "^1.8" } }, "sha512-pWGtXUFWYYUZNbg5YpG5vkQJyOtzn2KXhxYaMx/4I+lylTLYkITOLevaCwMRN+liCVk0pqB6EayLWojNqBFECA=="],
+
+    "@koracode/koracode-core/semver": ["semver@7.8.5", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA=="],
 
     "@malept/flatpak-bundler/fs-extra": ["fs-extra@9.1.0", "", { "dependencies": { "at-least-node": "^1.0.0", "graceful-fs": "^4.2.0", "jsonfile": "^6.0.1", "universalify": "^2.0.0" } }, "sha512-hcg3ZmepS30/7BSFqRvoo3DOMQu7IjqxO5nCDt+zM9XWjb33Wg7ziNT+Qvqbuc3+gWpzO02JubVyk2G4Zvo1OQ=="],
 

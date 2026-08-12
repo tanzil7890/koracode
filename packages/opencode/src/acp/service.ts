@@ -92,17 +92,17 @@ export function make(input: {
   const initialize = Effect.fn("ACP.initialize")(function* (params: InitializeRequest) {
     const started = performance.now()
     const authMethod: AuthMethod = {
-      description: "Run `bcode auth login` in the terminal",
-      name: "Login with BrowserCode",
+      description: "Run `kcode auth login` in the terminal",
+      name: "Login with KoraCode",
       id: AuthMethodID,
     }
 
     if (params.clientCapabilities?._meta?.["terminal-auth"] === true) {
       authMethod._meta = {
         "terminal-auth": {
-          command: "bcode",
+          command: "kcode",
           args: ["auth", "login"],
-          label: "BrowserCode Login",
+          label: "KoraCode Login",
         },
       }
     }
@@ -128,7 +128,7 @@ export function make(input: {
       },
       authMethods: [authMethod],
       agentInfo: {
-        name: "BrowserCode",
+        name: "KoraCode",
         version: InstallationVersion,
       },
     }
@@ -1059,7 +1059,7 @@ function fromUnknownError(error: unknown, service?: string): Error {
   if (isAuthRequired(error)) {
     return new ACPError.AuthRequiredError({ providerId: findProviderID(error) })
   }
-  return new ACPError.ServiceFailureError({ safeMessage: "BrowserCode service failure", service })
+  return new ACPError.ServiceFailureError({ safeMessage: "KoraCode service failure", service })
 }
 
 function isACPError(error: unknown): error is Error {

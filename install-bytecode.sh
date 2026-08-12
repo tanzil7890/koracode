@@ -1,19 +1,19 @@
 #!/bin/sh
 #
-# BrowserCode installer — serve-only build. Hosted at https://bcode.sh/bytecode,
-# alongside (not replacing) https://bcode.sh/install, which stays the path for
+# KoraCode installer — serve-only build. Hosted at https://kcode.sh/bytecode,
+# alongside (not replacing) https://kcode.sh/install, which stays the path for
 # the full CLI.
 #
-#   curl -fsSL https://bcode.sh/bytecode | sh -s -- --no-modify-path --version 0.1.19
+#   curl -fsSL https://kcode.sh/bytecode | sh -s -- --no-modify-path --version 0.1.19
 #
-# Installs `bcode-linux-<arch>[-musl]-serve`, which provides ONLY `bcode serve`;
+# Installs `kcode-linux-<arch>[-musl]-serve`, which provides ONLY `kcode serve`;
 # run, tui, web, github and the rest are absent and exit 1. It exists for headless
 # containers.
 #
 # POSIX sh, not bash: Alpine is a supported target here and ships no bash.
 set -eu
 
-REPO=browser-use/browsercode
+REPO=browser-use/koracode
 DIM='\033[0;2m'
 RED='\033[0;31m'
 OFF='\033[0m'
@@ -36,24 +36,24 @@ need() {
 
 usage() {
   cat >&2 <<EOF
-BrowserCode installer (serve-only build)
+KoraCode installer (serve-only build)
 
   -v, --version <ver>    version to install (default: latest release)
-      --install-dir <d>  where to install (default: \$HOME/.bcode/bin)
+      --install-dir <d>  where to install (default: \$HOME/.kcode/bin)
       --no-modify-path   accepted for install.sh parity; this script never edits
                          shell config files
   -h, --help             show this help
 
-Installs a bcode that provides ONLY 'bcode serve'.
-For the full CLI: curl -fsSL https://bcode.sh/install | bash
+Installs a kcode that provides ONLY 'kcode serve'.
+For the full CLI: curl -fsSL https://kcode.sh/install | bash
 EOF
 }
 
 # Namespaced on purpose: a bare VERSION is a common Dockerfile ARG, and picking
 # it up here would silently install the wrong build.
-version=${BCODE_VERSION:-}
+version=${KCODE_VERSION:-}
 # HOME is routinely unset under `--user`/runAsUser with no passwd entry.
-install_dir=${BCODE_INSTALL_DIR:-${HOME:-/root}/.bcode/bin}
+install_dir=${KCODE_INSTALL_DIR:-${HOME:-/root}/.kcode/bin}
 
 while [ $# -gt 0 ]; do
   case $1 in
@@ -75,7 +75,7 @@ done
 
 [ "$(uname -s)" = Linux ] || die \
   "The serve build is published for linux only (got $(uname -s))." \
-  "Use https://bcode.sh/install for the standard cross-platform binary."
+  "Use https://kcode.sh/install for the standard cross-platform binary."
 
 case $(uname -m) in
   aarch64 | arm64) arch=arm64 ;;
@@ -89,7 +89,7 @@ esac
 # hypervisors) has none, and unknown is not the same as absent.
 if [ "$arch" = x64 ] && grep -qi '^flags' /proc/cpuinfo 2>/dev/null && ! grep -qwi avx2 /proc/cpuinfo; then
   die "This CPU has no AVX2 and no baseline serve build is published." \
-    "Use https://bcode.sh/install, which ships a baseline binary."
+    "Use https://kcode.sh/install, which ships a baseline binary."
 fi
 
 # A glibc binary cannot exec on musl. musl's ldd prints its banner and then exits
@@ -98,7 +98,7 @@ target=linux-$arch
 if [ -f /etc/alpine-release ] || ldd --version 2>&1 | grep -qi musl; then
   target=$target-musl
 fi
-asset=bcode-$target-serve.tar.gz
+asset=kcode-$target-serve.tar.gz
 
 if [ -n "$version" ]; then
   version=${version#v}
@@ -109,7 +109,7 @@ else
 fi
 url=https://github.com/$REPO/releases/download/v$version/$asset
 
-say "Installing bcode $version ($target, serve build)"
+say "Installing kcode $version ($target, serve build)"
 
 tmp=$(mktemp -d)
 staged=
@@ -133,10 +133,10 @@ curl -fsSL -o "$tmp/$asset" "$url" || die \
   "Releases published before this variant existed do not carry the asset."
 
 tar -xzf "$tmp/$asset" -C "$tmp"
-[ -f "$tmp/bcode" ] || die "Archive did not contain a bcode binary."
+[ -f "$tmp/kcode" ] || die "Archive did not contain a kcode binary."
 
 # Stage inside the install dir, validate, then swap. Validating first means a bad
-# download never replaces a working bcode; staging here rather than in /tmp avoids
+# download never replaces a working kcode; staging here rather than in /tmp avoids
 # requiring an exec-capable /tmp (noexec there is common hardening) and makes the
 # final step a same-filesystem rename, so the swap is atomic.
 case $install_dir in
@@ -144,11 +144,11 @@ case $install_dir in
   -*) die "Install directory must not start with '-' (got: $install_dir)." ;;
 esac
 mkdir -p -- "$install_dir"
-if [ -d "$install_dir/bcode" ]; then
-  die "$install_dir/bcode is a directory; refusing to install over it."
+if [ -d "$install_dir/kcode" ]; then
+  die "$install_dir/kcode is a directory; refusing to install over it."
 fi
-staged=$(mktemp "$install_dir/.bcode.XXXXXX")
-mv "$tmp/bcode" "$staged"
+staged=$(mktemp "$install_dir/.kcode.XXXXXX")
+mv "$tmp/kcode" "$staged"
 chmod 755 "$staged"
 
 # Keep the binary's own stderr: on a libc mismatch it names the missing loader,
@@ -159,10 +159,10 @@ if ! installed=$("$staged" --version 2>"$tmp/err"); then
     "If $install_dir is mounted noexec, pass --install-dir."
 fi
 
-mv "$staged" "$install_dir/bcode"
+mv "$staged" "$install_dir/kcode"
 staged=
 
-say "Installed $install_dir/bcode ($installed) — provides 'bcode serve' only"
+say "Installed $install_dir/kcode ($installed) — provides 'kcode serve' only"
 case ":$PATH:" in
   *":$install_dir:"*) ;;
   *) say "Not on PATH. Add it with: export PATH=\"$install_dir:\$PATH\"" ;;

@@ -2,7 +2,7 @@
 // before any subsequent import is evaluated. Keep this as the FIRST import
 // so the LMNR_PROJECT_API_KEY env var is settled before any downstream
 // module-load code reads it.
-import "@browser-use/bcode-browser/telemetry"
+import "@koracode/kcode-browser/telemetry"
 
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
@@ -40,7 +40,7 @@ const args = hideBin(process.argv)
 
 function show(out: string) {
   const text = out.trimStart()
-  if (!text.startsWith("bcode ")) {
+  if (!text.startsWith("kcode ")) {
     process.stderr.write(UI.logo() + EOL + EOL)
     process.stderr.write(text + EOL)
     return
@@ -50,7 +50,7 @@ function show(out: string) {
 
 const cli = yargs(args)
   .parserConfiguration({ "populate--": true })
-  .scriptName("bcode")
+  .scriptName("kcode")
   .wrap(100)
   .help("help", "show help")
   .alias("help", "h")
@@ -141,7 +141,7 @@ try {
   process.exitCode = 1
 } finally {
   // Plugin shutdown hooks are the single drain point for OTel-based plugins
-  // (e.g. bcode-laminar). Each hook may return a Promise — bcode-laminar
+  // (e.g. kcode-laminar). Each hook may return a Promise — kcode-laminar
   // returns its BatchSpanProcessor's forceFlush plus any in-flight flushes
   // kicked off by bus event handlers — which we await with a 3s budget so
   // a wedged exporter cannot hang `process.exit()`.

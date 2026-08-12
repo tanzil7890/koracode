@@ -43,8 +43,8 @@ export class McpOAuthProvider implements OAuthClientProvider {
   get clientMetadata(): OAuthClientMetadata {
     return {
       redirect_uris: [this.redirectUrl],
-      client_name: "BrowserCode",
-      client_uri: "https://bcode.sh",
+      client_name: "KoraCode",
+      client_uri: "https://kcode.sh",
       grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code"],
       token_endpoint_auth_method: this.config.clientSecret ? "client_secret_post" : "none",

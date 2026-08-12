@@ -13,7 +13,7 @@ Designed so a maintenance agent with no prior context can run it end-to-end.
 ## Prerequisites
 
 - `upstream` remote configured: `git remote add upstream https://github.com/anomalyco/opencode.git`
-- `$BROWSERCODE_DEV_PAT` available (for push + PR creation).
+- `$KORACODE_DEV_PAT` available (for push + PR creation).
 - `bun` on `PATH` matching or newer than the `packageManager` pin in root `package.json` (currently `1.3.13`). Older bun will fail the pre-push hook's version guard.
 
 ## The 7 steps
@@ -49,13 +49,13 @@ git merge <target-sha>
 
 Expect conflicts. Typical conflict set for ~50-100 commits of upstream churn:
 
-- `packages/opencode/package.json` — we renamed to `@browser-use/browsercode-core`; upstream bumps the version string. **Rule: keep our `name`, take their `version`.**
-- `bun.lock` — never hand-edit. `git checkout --theirs bun.lock`, then `bun install` after the rest is staged. This regenerates the lockfile against our actual workspace (which includes `@browser-use/bcode-browser`, not present upstream).
+- `packages/opencode/package.json` — we renamed to `@koracode/koracode-core`; upstream bumps the version string. **Rule: keep our `name`, take their `version`.**
+- `bun.lock` — never hand-edit. `git checkout --theirs bun.lock`, then `bun install` after the rest is staged. This regenerates the lockfile against our actual workspace (which includes `@koracode/kcode-browser`, not present upstream).
 - Other `package.json` files — `packages/web/`, `packages/shared/`, root. If we renamed anything there, same rule: keep our names, take their deps.
 
 Files we might have Yellow-zone modifications in (run the audit in step 5):
-- `bin/bcode` (our rename of `bin/opencode`)
-- `packages/opencode/src/index.ts`, `packages/opencode/src/cli/cmd/temporary.ts` — `scriptName("bcode")` instead of `"opencode"`
+- `bin/kcode` (our rename of `bin/opencode`)
+- `packages/opencode/src/index.ts`, `packages/opencode/src/cli/cmd/temporary.ts` — `scriptName("kcode")` instead of `"opencode"`
 - USER_AGENT sites, banner (`ui.ts`, `logo.ts`), mDNS domain
 
 ### 3a. Re-delete upstream-only workflows
@@ -75,7 +75,7 @@ bun install
 bun run typecheck
 ```
 
-`bun run typecheck` at the root is aliased to the F4 filter: `bun turbo typecheck --filter='@browser-use/browsercode-core...' --filter='@browser-use/bcode-browser'`. Runs only the 5 packages we ship; should finish in ~12 seconds on a cold cache. If it fails, upstream changed an API we depend on — fix in our code, not upstream's.
+`bun run typecheck` at the root is aliased to the F4 filter: `bun turbo typecheck --filter='@koracode/koracode-core...' --filter='@koracode/kcode-browser'`. Runs only the 5 packages we ship; should finish in ~12 seconds on a cold cache. If it fails, upstream changed an API we depend on — fix in our code, not upstream's.
 
 Do NOT run root-level `bun turbo typecheck` without the filter. It will try to typecheck `web`, `console`, `app`, `enterprise` — packages we deliberately do not maintain, some of which are upstream-broken. That's why the F4 filter exists.
 
@@ -110,13 +110,13 @@ git push -u origin sync/upstream-vX.Y.Z
 
 The pre-push hook (`husky/pre-push`) runs the bun-version guard + `bun run typecheck`. With `bun >= 1.3.13` and a clean typecheck, it passes without `--no-verify`. If you must bypass, document why in the PR.
 
-Open the PR. Our `$BROWSERCODE_DEV_PAT` is a fine-grained PAT scoped to `browser-use/browsercode` (user: `Alezander9`). It works via the REST API; `gh pr create` uses a GraphQL mutation that this PAT does not allow. Use REST:
+Open the PR. Our `$KORACODE_DEV_PAT` is a fine-grained PAT scoped to `browser-use/koracode` (user: `Alezander9`). It works via the REST API; `gh pr create` uses a GraphQL mutation that this PAT does not allow. Use REST:
 
 ```sh
 curl -sS -X POST \
-  -H "Authorization: token $BROWSERCODE_DEV_PAT" \
+  -H "Authorization: token $KORACODE_DEV_PAT" \
   -H "Accept: application/vnd.github+json" \
-  https://api.github.com/repos/browser-use/browsercode/pulls \
+  https://api.github.com/repos/browser-use/koracode/pulls \
   -d '{
     "title": "sync: upstream vX.Y.Z (<short-sha> on dev)",
     "head": "sync/upstream-vX.Y.Z",
@@ -125,7 +125,7 @@ curl -sS -X POST \
   }'
 ```
 
-(`gh api repos/browser-use/browsercode/pulls --method POST -f ...` also works, same REST path.)
+(`gh api repos/browser-use/koracode/pulls --method POST -f ...` also works, same REST path.)
 
 ### PR body template
 

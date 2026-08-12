@@ -458,9 +458,9 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://bcode.sh/",
-            "X-Title": "bcode",
-            "X-Source": "bcode",
+            "HTTP-Referer": "https://kcode.sh/",
+            "X-Title": "kcode",
+            "X-Source": "kcode",
           },
         },
       }),
@@ -469,8 +469,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://bcode.sh/",
-            "X-Title": "bcode",
+            "HTTP-Referer": "https://kcode.sh/",
+            "X-Title": "kcode",
           },
         },
       }),
@@ -479,8 +479,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: provider.source === "config",
         options: {
           headers: {
-            "HTTP-Referer": "https://bcode.sh/",
-            "X-Title": "bcode",
+            "HTTP-Referer": "https://kcode.sh/",
+            "X-Title": "kcode",
           },
         },
       }),
@@ -489,8 +489,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "http-referer": "https://bcode.sh/",
-            "x-title": "bcode",
+            "http-referer": "https://kcode.sh/",
+            "x-title": "kcode",
           },
         },
       }),
@@ -595,8 +595,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://bcode.sh/",
-            "X-Title": "bcode",
+            "HTTP-Referer": "https://kcode.sh/",
+            "X-Title": "kcode",
           },
         },
       }),
@@ -844,7 +844,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "X-Cerebras-3rd-Party-Integration": "bcode",
+            "X-Cerebras-3rd-Party-Integration": "kcode",
           },
         },
       }),
@@ -853,8 +853,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://bcode.sh/",
-            "X-Title": "bcode",
+            "HTTP-Referer": "https://kcode.sh/",
+            "X-Title": "kcode",
           },
         },
       }),

@@ -46,9 +46,9 @@ describe("LLMGatewayPlugin", () => {
       yield* addPlugin()
       expect((yield* catalog.provider.get(ProviderV2.ID.make("llmgateway")))?.request.headers).toEqual({
         Existing: "value",
-        "HTTP-Referer": "https://bcode.sh/",
-        "X-Title": "bcode",
-        "X-Source": "bcode",
+        "HTTP-Referer": "https://kcode.sh/",
+        "X-Title": "kcode",
+        "X-Source": "kcode",
       })
       expect((yield* catalog.provider.get(ProviderV2.ID.openrouter))?.request.headers).toEqual({})
     }),

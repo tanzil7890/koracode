@@ -14,7 +14,7 @@ process.chdir(dir)
 const generated = await import("./generate.ts")
 
 import { Script } from "@opencode-ai/script"
-import { createEmbeddedSkillsBundle } from "../../bcode-browser/script/embed-skills.ts"
+import { createEmbeddedSkillsBundle } from "../../kcode-browser/script/embed-skills.ts"
 import pkg from "../package.json"
 
 const singleFlag = process.argv.includes("--single")
@@ -145,8 +145,8 @@ if (!skipInstall) {
   await $`bun install --os="*" --cpu="*" @ff-labs/fff-bun@${pkg.dependencies["@ff-labs/fff-bun"]}`
 }
 for (const item of targets) {
-  // suffix shared by both: @browser-use/browsercode-core-<os>-<arch>... (npm package name)
-  // and          bcode-<os>-<arch>...                    (release-asset name)
+  // suffix shared by both: @koracode/koracode-core-<os>-<arch>... (npm package name)
+  // and          kcode-<os>-<arch>...                    (release-asset name)
   const targetSuffix = [
     // changing to win32 flags npm for some reason
     item.os === "win32" ? "windows" : item.os,
@@ -157,7 +157,7 @@ for (const item of targets) {
     .filter(Boolean)
     .join("-")
   const name = `${pkg.name}-${targetSuffix}` // dist subdir + npm package id
-  const assetName = `bcode-${targetSuffix}` // release archive basename
+  const assetName = `kcode-${targetSuffix}` // release archive basename
   console.log(`building ${name} → ${assetName}`)
   await $`mkdir -p dist/${name}/bin`
 
@@ -180,21 +180,21 @@ for (const item of targets) {
       autoloadTsconfig: true,
       autoloadPackageJson: true,
       target: name.replace(pkg.name, "bun") as any,
-      outfile: `dist/${name}/bin/bcode`,
+      outfile: `dist/${name}/bin/kcode`,
       execArgv: [`--user-agent=opencode/${Script.version}`, "--use-system-ca", "--"],
       windows: {},
     },
     files: {
       [treeSitterWorkerPath]: treeSitterWorker,
       ...(embeddedFileMap ? { "opencode-web-ui.gen.ts": embeddedFileMap } : {}),
-      "bcode-skills.gen.ts": embeddedSkillsFileMap,
+      "kcode-skills.gen.ts": embeddedSkillsFileMap,
     },
     entrypoints: [
       "./src/index.ts",
       workerPath,
       treeSitterWorkerPath,
       ...(embeddedFileMap ? ["opencode-web-ui.gen.ts"] : []),
-      "bcode-skills.gen.ts",
+      "kcode-skills.gen.ts",
     ],
     define: {
       FFF_LIBC: JSON.stringify(item.abi === "musl" ? "musl" : "gnu"),
@@ -206,15 +206,15 @@ for (const item of targets) {
       OPENCODE_LIBC: item.os === "linux" ? `'${item.abi ?? "glibc"}'` : "",
       // Build-time-embedded Laminar project key. Populated by release CI from
       // the LMNR_PROJECT_API_KEY_OSS secret; empty for local builds. Runtime
-      // use is gated in @browser-use/bcode-browser/src/telemetry.ts.
-      BCODE_DEFAULT_LMNR_KEY: JSON.stringify(process.env.BCODE_DEFAULT_LMNR_KEY ?? ""),
+      // use is gated in @koracode/kcode-browser/src/telemetry.ts.
+      KCODE_DEFAULT_LMNR_KEY: JSON.stringify(process.env.KCODE_DEFAULT_LMNR_KEY ?? ""),
       ...(item.os === "linux" ? { "process.env.OPENTUI_LIBC": JSON.stringify(item.abi ?? "glibc") } : {}),
     },
   })
 
   // Smoke test: only run if binary is for current platform
   if (item.os === process.platform && item.arch === process.arch && !item.abi) {
-    const binaryPath = `dist/${name}/bin/bcode`
+    const binaryPath = `dist/${name}/bin/kcode`
     console.log(`Running smoke test: ${binaryPath} --version`)
     try {
       const versionOutput = await $`${binaryPath} --version`.text()
@@ -245,14 +245,14 @@ for (const item of targets) {
 
 if (Script.release) {
   for (const [key, info] of Object.entries(binaries)) {
-    // archive at dist/<assetName>.{tar.gz,zip} so `gh release upload ./dist/bcode-*` finds clean basenames.
+    // archive at dist/<assetName>.{tar.gz,zip} so `gh release upload ./dist/kcode-*` finds clean basenames.
     if (key.includes("linux")) {
       await $`tar -czf ../../../${info.assetName}.tar.gz *`.cwd(`dist/${key}/bin`)
     } else {
       await $`zip -r ../../../${info.assetName}.zip *`.cwd(`dist/${key}/bin`)
     }
   }
-  await $`gh release upload v${Script.version} ./dist/bcode-*.tar.gz ./dist/bcode-*.zip --clobber --repo ${process.env.GH_REPO}`
+  await $`gh release upload v${Script.version} ./dist/kcode-*.tar.gz ./dist/kcode-*.zip --clobber --repo ${process.env.GH_REPO}`
 }
 
 export { binaries }

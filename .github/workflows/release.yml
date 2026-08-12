@@ -1,6 +1,6 @@
 name: release
 
-# Build the bcode CLI for every platform we ship and attach the archives to
+# Build the kcode CLI for every platform we ship and attach the archives to
 # the GitHub Release matching the pushed tag.
 #
 # Trigger:
@@ -18,7 +18,7 @@ name: release
 #      variants where applicable).
 #   2. Bun cross-compiles every target from a single Linux runner.
 #   3. With `OPENCODE_RELEASE=1`, `build.ts` archives each target as
-#      `dist/bcode-<os>-<arch>...{.tar.gz,.zip}` and uploads via `gh release
+#      `dist/kcode-<os>-<arch>...{.tar.gz,.zip}` and uploads via `gh release
 #      upload --clobber`.
 #
 # Pre-condition: if a Release for the tag doesn't already exist this workflow
@@ -47,7 +47,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    if: github.repository == 'browser-use/browsercode'
+    if: github.repository == 'browser-use/koracode'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -73,7 +73,7 @@ jobs:
         # `main`) silently produces a release whose contents diverge from the
         # canonical history. Precedent: v0.0.8/v0.0.9 were tagged from
         # feat/embed-lmnr-key after PR #33 merged into the feature branch
-        # (not into main); main moved on without it and the bcode-laminar
+        # (not into main); main moved on without it and the kcode-laminar
         # package had to be re-landed in PR #39. This guard fails the release
         # before any binaries are uploaded.
         #
@@ -140,14 +140,14 @@ jobs:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Embedded into the binary by build.ts via Bun `define`. Read at
-          # runtime in @browser-use/bcode-browser/telemetry, gated by
+          # runtime in @koracode/kcode-browser/telemetry, gated by
           # DO_NOT_TRACK and any user-supplied LMNR_PROJECT_API_KEY.
-          BCODE_DEFAULT_LMNR_KEY: ${{ secrets.LMNR_PROJECT_API_KEY_OSS }}
+          KCODE_DEFAULT_LMNR_KEY: ${{ secrets.LMNR_PROJECT_API_KEY_OSS }}
         run: |
           ./packages/opencode/script/build.ts
 
       - name: Build serve-only variant and upload to release
-        # Additive: publishes `bcode-linux-{arm64,x64}[-musl]-serve.tar.gz` for
+        # Additive: publishes `kcode-linux-{arm64,x64}[-musl]-serve.tar.gz` for
         # headless containers, from its own package so the upstream-forked
         # `packages/opencode` and the canonical step above stay untouched.
         #
@@ -166,7 +166,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.ver.outputs.tag }}
-          BCODE_DEFAULT_LMNR_KEY: ${{ secrets.LMNR_PROJECT_API_KEY_OSS }}
+          KCODE_DEFAULT_LMNR_KEY: ${{ secrets.LMNR_PROJECT_API_KEY_OSS }}
         run: |
           # Checkout has no `ref:`, so on `workflow_dispatch` the tree is the
           # dispatch ref, not the selected tag, while the upload still targets
@@ -179,7 +179,7 @@ jobs:
             echo "::warning::Skipped the serve variant: checkout $(git rev-parse --short HEAD) is not tag ${TAG}. Re-run from a state where they match to publish it."
             exit 0
           fi
-          bun ./packages/bcode-serve/script/build.ts \
+          bun ./packages/kcode-serve/script/build.ts \
             --targets linux-arm64,linux-x64,linux-arm64-musl,linux-x64-musl
 
       - name: Summarise uploaded assets

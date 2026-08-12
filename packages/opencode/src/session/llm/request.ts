@@ -16,7 +16,7 @@ import type { Plugin } from "@/plugin"
 import { mergeDeep } from "remeda"
 
 const OPENCODE_USER_AGENT = `opencode/${InstallationVersion}`
-const BROWSERCODE_USER_AGENT = `browsercode/${InstallationVersion}`
+const KORACODE_USER_AGENT = `koracode/${InstallationVersion}`
 
 type PrepareInput = {
   readonly user: SessionV1.User
@@ -198,7 +198,7 @@ export const prepare = Effect.fn("LLMRequestPrep.prepare")(function* (input: Pre
             "x-session-affinity": input.sessionID,
             "X-Session-Id": input.sessionID,
             ...(input.parentSessionID ? { "x-parent-session-id": input.parentSessionID } : {}),
-            "User-Agent": BROWSERCODE_USER_AGENT,
+            "User-Agent": KORACODE_USER_AGENT,
           }),
       ...input.model.headers,
       ...headers,

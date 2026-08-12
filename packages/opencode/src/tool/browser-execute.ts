@@ -1,10 +1,10 @@
 // browser_execute — Level-2 hook (decisions.md §1c).
 //
-// Adapter only. Substantive logic lives in @browser-use/bcode-browser/browser-execute.
+// Adapter only. Substantive logic lives in @koracode/kcode-browser/browser-execute.
 
 import path from "path"
 import { Effect, Schema } from "effect"
-import { BrowserExecute } from "@browser-use/bcode-browser/browser-execute"
+import { BrowserExecute } from "@koracode/kcode-browser/browser-execute"
 import { Global } from "@opencode-ai/core/global"
 import { InstanceState } from "@/effect/instance-state"
 import * as Tool from "./tool"
@@ -16,9 +16,9 @@ const preview = (text: string) =>
 
 // Per-project workspace where the agent saves reusable .ts scripts. Resolved
 // from opencode's project-detection (Instance.directory) — same source that
-// already finds .bcode/plans, .bcode/db, etc. Shared via clone (`.bcode/` is
+// already finds .kcode/plans, .kcode/db, etc. Shared via clone (`.kcode/` is
 // tracked-by-default, see hard rule #3) and isolated per project.
-const workspaceDirOf = (projectDir: string) => path.join(projectDir, ".bcode", "agent-workspace")
+const workspaceDirOf = (projectDir: string) => path.join(projectDir, ".kcode", "agent-workspace")
 
 export const BrowserExecuteTool = Tool.define(
   "browser_execute",
@@ -34,7 +34,7 @@ export const BrowserExecuteTool = Tool.define(
       execute: (args: Schema.Schema.Type<typeof impl.parameters>, ctx: Tool.Context) =>
         Effect.gen(function* () {
           // Permission gate. Default agent ruleset has `"*": "allow"` so this
-          // auto-allows; users can opt out via bcode.json — either
+          // auto-allows; users can opt out via kcode.json — either
           // `"tools": { "browser_execute": false }` or a per-permission rule.
           yield* ctx.ask({
             permission: "browser_execute",

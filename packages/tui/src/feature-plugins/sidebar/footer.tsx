@@ -53,7 +53,7 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
                 ✕
               </text>
             </box>
-            <text fg={theme().textMuted}>BrowserCode supports 75+ providers — bring your own API key to get started.</text>
+            <text fg={theme().textMuted}>KoraCode supports 75+ providers — bring your own API key to get started.</text>
             <text fg={theme().textMuted}>
               Connect from 75+ providers to use other models, including Claude, GPT, Gemini etc
             </text>
