@@ -16,12 +16,14 @@
 //   ^  -> fg+bg half-block ▀ (crossbars: E, B, S)
 //   ~  -> shadow half-block ▀ (rounded curves: N, D)
 //   █ ▀ ▄ and anything else -> fg-colored pass-through
+// Rebranded to KORACODE (left = "kora", right = "code"). The `k` and `a` glyphs
+// were designed to match this font's style (browsercode's source had neither).
 export const logo = {
   left: [
-    "▄                                 ",
-    "█▀▀█ █▀▀▄ █▀▀█ █  █ █▀▀▀ █▀▀█ █▀▀▄",
-    "█__█ █___ █__█ █▐▌█ ^^^█ █^^^ █___",
-    "▀▀▀▀ ▀~~~ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀~~~",
+    "▄                  ",
+    "█ ▄▀ █▀▀█ █▀▀▄ █▀▀█",
+    "█▀▄  █__█ █___ █^^█",
+    "▀  ▀ ▀▀▀▀ ▀~~~ ▀  ▀",
   ],
   right: [
     "             ▄     ",
