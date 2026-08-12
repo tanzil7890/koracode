@@ -855,7 +855,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         title: "Open docs",
         category: "System",
         run: () => {
-          open("https://github.com/browser-use/koracode").catch(() => {})
+          open("https://github.com/tanzil7890/koracode").catch(() => {})
           dialog.clear()
         },
       },

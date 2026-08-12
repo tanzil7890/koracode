@@ -181,7 +181,7 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         // silent for devs running from source.
         if (detectedMethod !== "curl") return InstallationVersion
         const response = yield* httpOk.execute(
-          HttpClientRequest.get("https://api.github.com/repos/browser-use/koracode/releases/latest").pipe(
+          HttpClientRequest.get("https://api.github.com/repos/tanzil7890/koracode/releases/latest").pipe(
             HttpClientRequest.acceptJson,
           ),
         )

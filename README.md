@@ -140,7 +140,7 @@ Most upstream contributions belong in one of the projects KoraCode builds on:
 Run from source:
 
 ```sh
-git clone https://github.com/browser-use/koracode.git
+git clone https://github.com/tanzil7890/koracode.git
 cd koracode
 bun install
 bun run --cwd packages/opencode dev

@@ -9,7 +9,7 @@
 #
 # Adapted from anomalyco/opencode's installer (MIT). Differences:
 #
-#   - Pulls assets from `browser-use/koracode` GitHub Releases.
+#   - Pulls assets from `tanzil7890/koracode` GitHub Releases.
 #   - Installs to `$HOME/.kcode/bin/kcode`.
 #   - Marks shell-rc edits with `# kcode` so `kcode uninstall` strips them
 #     cleanly (matches PR #12 changes).
@@ -196,8 +196,8 @@ else
     fi
 
     if [ -z "$requested_version" ]; then
-        url="https://github.com/browser-use/koracode/releases/latest/download/$filename"
-        specific_version=$(curl -s https://api.github.com/repos/browser-use/koracode/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p')
+        url="https://github.com/tanzil7890/koracode/releases/latest/download/$filename"
+        specific_version=$(curl -s https://api.github.com/repos/tanzil7890/koracode/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p')
 
         if [[ $? -ne 0 || -z "$specific_version" ]]; then
             echo -e "${RED}Failed to fetch version information${NC}"
@@ -206,13 +206,13 @@ else
         fi
     else
         requested_version="${requested_version#v}"
-        url="https://github.com/browser-use/koracode/releases/download/v${requested_version}/$filename"
+        url="https://github.com/tanzil7890/koracode/releases/download/v${requested_version}/$filename"
         specific_version=$requested_version
 
-        http_status=$(curl -sI -o /dev/null -w "%{http_code}" "https://github.com/browser-use/koracode/releases/tag/v${requested_version}")
+        http_status=$(curl -sI -o /dev/null -w "%{http_code}" "https://github.com/tanzil7890/koracode/releases/tag/v${requested_version}")
         if [ "$http_status" = "404" ]; then
             echo -e "${RED}Error: Release v${requested_version} not found${NC}"
-            echo -e "${MUTED}Available releases: https://github.com/browser-use/koracode/releases${NC}"
+            echo -e "${MUTED}Available releases: https://github.com/tanzil7890/koracode/releases${NC}"
             exit 1
         fi
     fi
@@ -488,6 +488,6 @@ echo -e ""
 echo -e "cd <project>  ${MUTED}# Open directory${NC}"
 echo -e "kcode         ${MUTED}# Run the agent${NC}"
 echo -e ""
-echo -e "${MUTED}Docs:    ${NC}https://github.com/browser-use/koracode"
-echo -e "${MUTED}Issues:  ${NC}https://github.com/browser-use/koracode/issues"
+echo -e "${MUTED}Docs:    ${NC}https://github.com/tanzil7890/koracode"
+echo -e "${MUTED}Issues:  ${NC}https://github.com/tanzil7890/koracode/issues"
 echo -e ""

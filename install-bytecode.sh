@@ -13,7 +13,7 @@
 # POSIX sh, not bash: Alpine is a supported target here and ships no bash.
 set -eu
 
-REPO=browser-use/koracode
+REPO=tanzil7890/koracode
 DIM='\033[0;2m'
 RED='\033[0;31m'
 OFF='\033[0m'

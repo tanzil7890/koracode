@@ -110,13 +110,13 @@ git push -u origin sync/upstream-vX.Y.Z
 
 The pre-push hook (`husky/pre-push`) runs the bun-version guard + `bun run typecheck`. With `bun >= 1.3.13` and a clean typecheck, it passes without `--no-verify`. If you must bypass, document why in the PR.
 
-Open the PR. Our `$KORACODE_DEV_PAT` is a fine-grained PAT scoped to `browser-use/koracode` (user: `Alezander9`). It works via the REST API; `gh pr create` uses a GraphQL mutation that this PAT does not allow. Use REST:
+Open the PR. Our `$KORACODE_DEV_PAT` is a fine-grained PAT scoped to `tanzil7890/koracode` (user: `Alezander9`). It works via the REST API; `gh pr create` uses a GraphQL mutation that this PAT does not allow. Use REST:
 
 ```sh
 curl -sS -X POST \
   -H "Authorization: token $KORACODE_DEV_PAT" \
   -H "Accept: application/vnd.github+json" \
-  https://api.github.com/repos/browser-use/koracode/pulls \
+  https://api.github.com/repos/tanzil7890/koracode/pulls \
   -d '{
     "title": "sync: upstream vX.Y.Z (<short-sha> on dev)",
     "head": "sync/upstream-vX.Y.Z",
@@ -125,7 +125,7 @@ curl -sS -X POST \
   }'
 ```
 
-(`gh api repos/browser-use/koracode/pulls --method POST -f ...` also works, same REST path.)
+(`gh api repos/tanzil7890/koracode/pulls --method POST -f ...` also works, same REST path.)
 
 ### PR body template
 

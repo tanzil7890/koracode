@@ -47,7 +47,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    if: github.repository == 'browser-use/koracode'
+    if: github.repository == 'tanzil7890/koracode'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
