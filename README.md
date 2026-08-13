@@ -26,7 +26,7 @@ curl -X POST https://api.browser-use.com/api/v4/runs \
 Run this in a terminal that supports bash:
 
 ```sh
-curl -fsSL https://kcode.sh/install | bash
+curl -fsSL https://get.hey-kora.com/install | bash
 ```
 
 ## Usage

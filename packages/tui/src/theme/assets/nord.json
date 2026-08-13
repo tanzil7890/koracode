@@ -1,5 +1,5 @@
 {
-  "$schema": "https://kcode.sh/theme.json",
+  "$schema": "https://get.hey-kora.com/theme.json",
   "defs": {
     "nord0": "#2E3440",
     "nord1": "#3B4252",

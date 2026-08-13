@@ -61,7 +61,7 @@ export class UpgradeFailedError extends Schema.TaggedErrorClass<UpgradeFailedErr
   }
 }
 
-// KoraCode currently only ships the curl installer (https://kcode.sh/install).
+// KoraCode currently only ships the curl installer (https://get.hey-kora.com/install).
 // npm/brew/scoop/choco branches are stubbed: `method()` only returns "curl"
 // or "unknown", and `latest()` / `upgrade()` short-circuit on "unknown".
 // When we add another distribution channel, restore the corresponding registry
@@ -140,7 +140,7 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
 
     const upgradeCurl = Effect.fnUntraced(
       function* (target: string) {
-        const response = yield* httpOk.execute(HttpClientRequest.get("https://kcode.sh/install"))
+        const response = yield* httpOk.execute(HttpClientRequest.get("https://get.hey-kora.com/install"))
         const body = yield* response.text
         const bodyBytes = new TextEncoder().encode(body)
         const shell = yield* upgradeScriptShell()
@@ -193,13 +193,13 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
           return yield* new UpgradeFailedError({
             stderr:
               "Auto-upgrade currently supports only curl-installed kcode. " +
-              "Reinstall with:\n  curl -fsSL https://kcode.sh/install | bash",
+              "Reinstall with:\n  curl -fsSL https://get.hey-kora.com/install | bash",
           })
         }
         const upgradeResult = yield* upgradeCurl(target)
         if (upgradeResult.code !== 0) {
           return yield* new UpgradeFailedError({
-            stderr: `${upgradeResult.stderr.trimEnd()}\n\nReinstall with:\n  curl -fsSL https://kcode.sh/install | bash`,
+            stderr: `${upgradeResult.stderr.trimEnd()}\n\nReinstall with:\n  curl -fsSL https://get.hey-kora.com/install | bash`,
           })
         }
         yield* Effect.logInfo("upgraded", {

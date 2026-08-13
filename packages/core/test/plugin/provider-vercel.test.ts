@@ -32,7 +32,7 @@ describe("VercelPlugin", () => {
       yield* addPlugin()
       expect((yield* catalog.provider.get(ProviderV2.ID.make("vercel")))?.request.headers).toEqual({
         Existing: "1",
-        "http-referer": "https://kcode.sh/",
+        "http-referer": "https://get.hey-kora.com/",
         "x-title": "kcode",
       })
     }),

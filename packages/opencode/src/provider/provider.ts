@@ -458,7 +458,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://kcode.sh/",
+            "HTTP-Referer": "https://get.hey-kora.com/",
             "X-Title": "kcode",
             "X-Source": "kcode",
           },
@@ -469,7 +469,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://kcode.sh/",
+            "HTTP-Referer": "https://get.hey-kora.com/",
             "X-Title": "kcode",
           },
         },
@@ -479,7 +479,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: provider.source === "config",
         options: {
           headers: {
-            "HTTP-Referer": "https://kcode.sh/",
+            "HTTP-Referer": "https://get.hey-kora.com/",
             "X-Title": "kcode",
           },
         },
@@ -489,7 +489,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "http-referer": "https://kcode.sh/",
+            "http-referer": "https://get.hey-kora.com/",
             "x-title": "kcode",
           },
         },
@@ -595,7 +595,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://kcode.sh/",
+            "HTTP-Referer": "https://get.hey-kora.com/",
             "X-Title": "kcode",
           },
         },
@@ -853,7 +853,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://kcode.sh/",
+            "HTTP-Referer": "https://get.hey-kora.com/",
             "X-Title": "kcode",
           },
         },

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://kcode.sh/theme.json",
+  "$schema": "https://get.hey-kora.com/theme.json",
   "defs": {
     "darkBg": "#181818",
     "darkPanel": "#141414",
