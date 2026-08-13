@@ -2,10 +2,10 @@
 #
 # KoraCode installer.
 #
-# Hosted at https://kcode.sh/install. One-liner:
+# Hosted at https://get.hey-kora.com/install. One-liner:
 #
-#   curl -fsSL https://kcode.sh/install | bash
-#   curl -fsSL https://kcode.sh/install | bash -s -- --version 0.0.3
+#   curl -fsSL https://get.hey-kora.com/install | bash
+#   curl -fsSL https://get.hey-kora.com/install | bash -s -- --version 0.0.3
 #
 # Adapted from anomalyco/opencode's installer (MIT). Differences:
 #
@@ -37,8 +37,8 @@ Options:
         --no-modify-path    Don't modify shell config files (.zshrc, .bashrc, etc.)
 
 Examples:
-    curl -fsSL https://kcode.sh/install | bash
-    curl -fsSL https://kcode.sh/install | bash -s -- --version 0.0.3
+    curl -fsSL https://get.hey-kora.com/install | bash
+    curl -fsSL https://get.hey-kora.com/install | bash -s -- --version 0.0.3
     ./install.sh --binary /path/to/kcode
 EOF
 }

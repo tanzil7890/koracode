@@ -1,10 +1,10 @@
 #!/bin/sh
 #
-# KoraCode installer — serve-only build. Hosted at https://kcode.sh/bytecode,
-# alongside (not replacing) https://kcode.sh/install, which stays the path for
+# KoraCode installer — serve-only build. Hosted at https://get.hey-kora.com/bytecode,
+# alongside (not replacing) https://get.hey-kora.com/install, which stays the path for
 # the full CLI.
 #
-#   curl -fsSL https://kcode.sh/bytecode | sh -s -- --no-modify-path --version 0.1.19
+#   curl -fsSL https://get.hey-kora.com/bytecode | sh -s -- --no-modify-path --version 0.1.19
 #
 # Installs `kcode-linux-<arch>[-musl]-serve`, which provides ONLY `kcode serve`;
 # run, tui, web, github and the rest are absent and exit 1. It exists for headless
@@ -45,7 +45,7 @@ KoraCode installer (serve-only build)
   -h, --help             show this help
 
 Installs a kcode that provides ONLY 'kcode serve'.
-For the full CLI: curl -fsSL https://kcode.sh/install | bash
+For the full CLI: curl -fsSL https://get.hey-kora.com/install | bash
 EOF
 }
 
@@ -75,7 +75,7 @@ done
 
 [ "$(uname -s)" = Linux ] || die \
   "The serve build is published for linux only (got $(uname -s))." \
-  "Use https://kcode.sh/install for the standard cross-platform binary."
+  "Use https://get.hey-kora.com/install for the standard cross-platform binary."
 
 case $(uname -m) in
   aarch64 | arm64) arch=arm64 ;;
@@ -89,7 +89,7 @@ esac
 # hypervisors) has none, and unknown is not the same as absent.
 if [ "$arch" = x64 ] && grep -qi '^flags' /proc/cpuinfo 2>/dev/null && ! grep -qwi avx2 /proc/cpuinfo; then
   die "This CPU has no AVX2 and no baseline serve build is published." \
-    "Use https://kcode.sh/install, which ships a baseline binary."
+    "Use https://get.hey-kora.com/install, which ships a baseline binary."
 fi
 
 # A glibc binary cannot exec on musl. musl's ldd prints its banner and then exits
