@@ -1,0 +1,34 @@
+[
+  {
+    "kind": "run_started",
+    "node_key": "",
+    "payload": {},
+    "protocol_version": "v1",
+    "run_id": "run-1",
+    "sequence": 1
+  },
+  {
+    "kind": "node_started",
+    "node_key": "agent",
+    "payload": {},
+    "protocol_version": "v1",
+    "run_id": "run-1",
+    "sequence": 2
+  },
+  {
+    "kind": "node_finished",
+    "node_key": "agent",
+    "payload": {},
+    "protocol_version": "v1",
+    "run_id": "run-1",
+    "sequence": 3
+  },
+  {
+    "kind": "run_finished",
+    "node_key": "",
+    "payload": {},
+    "protocol_version": "v1",
+    "run_id": "run-1",
+    "sequence": 4
+  }
+]

@@ -1,0 +1,52 @@
+{
+  "$id": "https://kora.invalid/contracts/workflow/v1/runtime-result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "error": {
+      "maxLength": 2000,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "lifecycle_status": {
+      "enum": [
+        "completed",
+        "failed",
+        "cancelled",
+        "indeterminate"
+      ]
+    },
+    "outcome_label": {
+      "enum": [
+        "completed",
+        "reported_failure",
+        "cancelled",
+        "timed_out",
+        "execution_limit",
+        "policy_denied",
+        "contract_violation",
+        "indeterminate"
+      ]
+    },
+    "output_node_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "protocol_version": {
+      "const": "v1"
+    },
+    "result": {}
+  },
+  "required": [
+    "protocol_version",
+    "lifecycle_status",
+    "outcome_label"
+  ],
+  "title": "Kora Runtime Result v1",
+  "type": "object",
+  "x-authority": "neutral-normative-12.2-B"
+}

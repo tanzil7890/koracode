@@ -1,0 +1,13 @@
+{
+  "accepted_reader_versions": ["v1"],
+  "deprecation_window": {
+    "minimum_releases": 2,
+    "minimum_days": 90
+  },
+  "emitted_writer_version": "v1",
+  "enum_evolution": "reader-first; unknown machine enum values fail closed until the reader is deployed",
+  "field_removal": "major protocol version only after the deprecation window",
+  "protocol": "kora-workflow",
+  "unknown_fields": "definition readers accept unknown object fields but do not promise passthrough; terminal, event, artifact, and bundle envelopes reject unknown top-level fields unless their schema explicitly permits them",
+  "version": 1
+}

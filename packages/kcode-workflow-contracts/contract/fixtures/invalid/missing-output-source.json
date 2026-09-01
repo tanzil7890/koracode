@@ -1,0 +1,39 @@
+{
+  "edges": [
+    {
+      "from": "agent",
+      "id": "done",
+      "to": "output",
+      "when": "success"
+    }
+  ],
+  "entry": "agent",
+  "name": "Missing output source",
+  "nodes": [
+    {
+      "id": "agent",
+      "instruction": "work",
+      "name": "Agent",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "type": "agent"
+    },
+    {
+      "id": "output",
+      "name": "Output",
+      "output_binding": {
+        "from": "node",
+        "node_id": "absent"
+      },
+      "position": {
+        "x": 1,
+        "y": 0
+      },
+      "type": "output"
+    }
+  ],
+  "variables": [],
+  "version": 3
+}

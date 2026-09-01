@@ -1,0 +1,22 @@
+{
+  "canonicalization": "RFC8785",
+  "members": [
+    {
+      "agent_id": "root-agent",
+      "assets": [],
+      "graph_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "path": []
+    },
+    {
+      "agent_id": "child-agent",
+      "assets": [],
+      "graph_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "path": [
+        "child"
+      ]
+    }
+  ],
+  "root_agent_id": "root-agent",
+  "root_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "schema_version": 1
+}

@@ -1,0 +1,127 @@
+[
+  {
+    "canonical_utf8": "null",
+    "name": "null",
+    "sha256": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+    "value": null
+  },
+  {
+    "canonical_utf8": "true",
+    "name": "boolean",
+    "sha256": "sha256:b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+    "value": true
+  },
+  {
+    "canonical_utf8": "{\"a\":\"line\\nbreak\",\"é\":\"snow ☃\"}",
+    "name": "unicode",
+    "sha256": "sha256:56c8c4882c97865d93133a4cfee3cb3a9a181a2e923d9932729d51dabf199c31",
+    "value": {
+      "a": "line\nbreak",
+      "é": "snow ☃"
+    }
+  },
+  {
+    "canonical_utf8": "{\"a\":[3,2,1],\"b\":1}",
+    "name": "object-order",
+    "sha256": "sha256:3ce2bce0ad5f581d642ebf7b59c400e6f60fa4416e9fb08e3061bb0a35f6fb2b",
+    "value": {
+      "a": [
+        3,
+        2,
+        1
+      ],
+      "b": 1
+    }
+  },
+  {
+    "canonical_utf8": "[-2,0,1.5,1000000000000]",
+    "name": "numbers",
+    "sha256": "sha256:ffe130f21c46db1d69a43377580d938c15eda9096020c0cc7d3de189c4e50fef",
+    "value": [
+      -2,
+      0,
+      1.5,
+      1000000000000
+    ]
+  },
+  {
+    "canonical_utf8": "[0,1e-7,0.000001,100000000000000000000,1e+21,333333333.3333333,1e-27]",
+    "name": "number-boundaries",
+    "sha256": "sha256:002c50566fbd70e198557ca001000c036cab33a20eac7ae72bc0afc447d1fded",
+    "value": [
+      -0.0,
+      1e-07,
+      1e-06,
+      1e+20,
+      1e+21,
+      333333333.3333333,
+      1e-27
+    ]
+  },
+  {
+    "canonical_utf8": "{\"edges\":[{\"from\":\"agent\",\"id\":\"done\",\"to\":\"success\",\"when\":\"success\"}],\"entry\":\"agent\",\"name\":\"Simple\",\"nodes\":[{\"id\":\"agent\",\"instruction\":\"Complete the task\",\"name\":\"Agent\",\"position\":{\"x\":0,\"y\":0},\"type\":\"agent\"},{\"id\":\"success\",\"position\":{\"x\":100,\"y\":0},\"type\":\"success\"}],\"variables\":[],\"version\":3}",
+    "name": "workflow-graph",
+    "sha256": "sha256:eee0aedbf7e97d03a920c06ef21e467ccf29fc108a416333dd6ceb889a243ff3",
+    "value": {
+      "edges": [
+        {
+          "from": "agent",
+          "id": "done",
+          "to": "success",
+          "when": "success"
+        }
+      ],
+      "entry": "agent",
+      "name": "Simple",
+      "nodes": [
+        {
+          "id": "agent",
+          "instruction": "Complete the task",
+          "name": "Agent",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "type": "agent"
+        },
+        {
+          "id": "success",
+          "position": {
+            "x": 100,
+            "y": 0
+          },
+          "type": "success"
+        }
+      ],
+      "variables": [],
+      "version": 3
+    }
+  },
+  {
+    "canonical_utf8": "{\"canonicalization\":\"RFC8785\",\"members\":[{\"agent_id\":\"root-agent\",\"assets\":[],\"graph_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"path\":[]},{\"agent_id\":\"child-agent\",\"assets\":[],\"graph_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"path\":[\"child\"]}],\"root_agent_id\":\"root-agent\",\"root_digest\":\"sha256:3333333333333333333333333333333333333333333333333333333333333333\",\"schema_version\":1}",
+    "name": "definition-bundle-manifest",
+    "sha256": "sha256:4edc212fc776fbe5ae047a0a7c8ecf5c109fa0bd6b1479800c4310d4ec10a590",
+    "value": {
+      "canonicalization": "RFC8785",
+      "members": [
+        {
+          "agent_id": "root-agent",
+          "assets": [],
+          "graph_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "path": []
+        },
+        {
+          "agent_id": "child-agent",
+          "assets": [],
+          "graph_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "path": [
+            "child"
+          ]
+        }
+      ],
+      "root_agent_id": "root-agent",
+      "root_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "schema_version": 1
+    }
+  }
+]

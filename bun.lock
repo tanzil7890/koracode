@@ -580,6 +580,18 @@
         "@types/yargs": "17.0.33",
       },
     },
+    "packages/kcode-workflow-contracts": {
+      "name": "@koracode/kcode-workflow-contracts",
+      "version": "0.0.0",
+      "dependencies": {
+        "ajv": "8.20.0",
+      },
+      "devDependencies": {
+        "@tsconfig/bun": "catalog:",
+        "@types/bun": "catalog:",
+        "@typescript/native-preview": "catalog:",
+      },
+    },
     "packages/llm": {
       "name": "@opencode-ai/llm",
       "version": "1.18.4",
@@ -1872,6 +1884,8 @@
     "@koracode/kcode-laminar": ["@koracode/kcode-laminar@workspace:packages/kcode-laminar"],
 
     "@koracode/kcode-serve": ["@koracode/kcode-serve@workspace:packages/kcode-serve"],
+
+    "@koracode/kcode-workflow-contracts": ["@koracode/kcode-workflow-contracts@workspace:packages/kcode-workflow-contracts"],
 
     "@koracode/koracode-core": ["@koracode/koracode-core@workspace:packages/opencode"],
 

@@ -1,0 +1,58 @@
+{
+  "$id": "https://kora.invalid/contracts/workflow/v1/artifact-manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifacts": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "bytes": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "kind": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "media_type": {
+            "maxLength": 256,
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "artifact_id",
+          "kind",
+          "digest",
+          "bytes"
+        ],
+        "type": "object"
+      },
+      "maxItems": 10000,
+      "type": "array"
+    },
+    "protocol_version": {
+      "const": "v1"
+    }
+  },
+  "required": [
+    "protocol_version",
+    "artifacts"
+  ],
+  "title": "Kora Artifact Manifest v1",
+  "type": "object",
+  "x-authority": "neutral-normative-12.2-B"
+}

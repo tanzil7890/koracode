@@ -1,0 +1,55 @@
+{
+  "edges": [
+    {
+      "from": "agent",
+      "id": "route",
+      "label": "done",
+      "to": "success",
+      "transition_schema": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "when": "ai"
+    },
+    {
+      "from": "agent",
+      "id": "fail",
+      "to": "error",
+      "when": "ai"
+    }
+  ],
+  "entry": "agent",
+  "name": "Non-object transition",
+  "nodes": [
+    {
+      "id": "agent",
+      "instruction": "work",
+      "name": "Agent",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "type": "agent"
+    },
+    {
+      "id": "success",
+      "position": {
+        "x": 1,
+        "y": 0
+      },
+      "type": "success"
+    },
+    {
+      "id": "error",
+      "position": {
+        "x": 1,
+        "y": 1
+      },
+      "type": "error"
+    }
+  ],
+  "variables": [],
+  "version": 3
+}

@@ -1,0 +1,818 @@
+{
+  "$defs": {
+    "AgentNode": {
+      "properties": {
+        "capabilities": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capabilities"
+        },
+        "expected_outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OutcomeCheck"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Outcome"
+        },
+        "hard_timeout_sec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hard Timeout Sec"
+        },
+        "hardened_steps": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hardened Steps"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "input_schema": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Schema"
+        },
+        "instruction": {
+          "title": "Instruction",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/GraphPosition"
+        },
+        "screen": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NodeScreenCaps"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "script": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScriptRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scripts": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/NodeScript"
+          },
+          "title": "Scripts",
+          "type": "array"
+        },
+        "soft_timeout_sec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Soft Timeout Sec"
+        },
+        "type": {
+          "const": "agent",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "name",
+        "instruction",
+        "position"
+      ],
+      "title": "AgentNode",
+      "type": "object"
+    },
+    "ConditionCheck": {
+      "description": "Condition-node check \u2014 deterministic kinds only (zero LLM calls).",
+      "properties": {
+        "kind": {
+          "enum": [
+            "url_contains",
+            "text_present",
+            "element_exists"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "ConditionCheck",
+      "type": "object"
+    },
+    "ConditionNode": {
+      "description": "Phase W5: branch on live page state with no agent and no LLM.",
+      "properties": {
+        "check": {
+          "$ref": "#/$defs/ConditionCheck"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/GraphPosition"
+        },
+        "type": {
+          "const": "condition",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "name",
+        "check",
+        "position"
+      ],
+      "title": "ConditionNode",
+      "type": "object"
+    },
+    "DataSource": {
+      "additionalProperties": false,
+      "description": "A deterministic reference from a node/output binding to prior data.",
+      "properties": {
+        "definition_path": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Definition Path",
+          "type": "array"
+        },
+        "edge_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Edge Id"
+        },
+        "from": {
+          "enum": [
+            "run",
+            "previous",
+            "node",
+            "edge"
+          ],
+          "title": "From",
+          "type": "string"
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Node Id"
+        },
+        "pointer": {
+          "default": "",
+          "title": "Pointer",
+          "type": "string"
+        },
+        "selection": {
+          "default": "single",
+          "enum": [
+            "single",
+            "latest_same_iteration",
+            "all_in_scope",
+            "current"
+          ],
+          "title": "Selection",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from"
+      ],
+      "title": "DataSource",
+      "type": "object"
+    },
+    "GraphEdge": {
+      "properties": {
+        "from": {
+          "title": "From",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "outcome_role": {
+          "default": "continue",
+          "enum": [
+            "continue",
+            "failure"
+          ],
+          "title": "Outcome Role",
+          "type": "string"
+        },
+        "selector": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selector"
+        },
+        "to": {
+          "title": "To",
+          "type": "string"
+        },
+        "transition_schema": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transition Schema"
+        },
+        "when": {
+          "enum": [
+            "success",
+            "error",
+            "true",
+            "false",
+            "ai",
+            "selector"
+          ],
+          "title": "When",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "from",
+        "to",
+        "when"
+      ],
+      "title": "GraphEdge",
+      "type": "object"
+    },
+    "GraphPosition": {
+      "properties": {
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "title": "GraphPosition",
+      "type": "object"
+    },
+    "GraphSettings": {
+      "description": "Workflow-level run policy \u2014 03 Phase N3.4 (additive; all optional so\nevery stored graph keeps parsing). 02-FILE-CONTRACT maps head/settings.yaml\n`timeout:` / `allow_cycles:` / `max_node_visits:` here. Global rules stay\nsingle-sourced in agent config `instructions` (see 03 Phase 3.6) \u2014 there is\ndeliberately NO global_rules field.",
+      "properties": {
+        "allow_cycles": {
+          "default": false,
+          "title": "Allow Cycles",
+          "type": "boolean"
+        },
+        "max_graph_steps": {
+          "default": 1000,
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "Max Graph Steps",
+          "type": "integer"
+        },
+        "max_node_visits": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Node Visits"
+        },
+        "timeout_sec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Timeout Sec"
+        }
+      },
+      "title": "GraphSettings",
+      "type": "object"
+    },
+    "GraphVariable": {
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "secret": {
+          "default": false,
+          "title": "Secret",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "GraphVariable",
+      "type": "object"
+    },
+    "LoopNode": {
+      "description": "Phase W6: bounded for-each. The loop lives INSIDE the node (\u00a73.2 rule 4:\nthe graph stays a DAG). `items_variable` names a context key holding a JSON\narray or newline-separated list; `item_instruction` runs once per item with\n{{.ITEM}} / {{.ITEM_INDEX}} available. Any iteration failure \u2192 error edge.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "item_instruction": {
+          "title": "Item Instruction",
+          "type": "string"
+        },
+        "items_variable": {
+          "title": "Items Variable",
+          "type": "string"
+        },
+        "max_iterations": {
+          "title": "Max Iterations",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/GraphPosition"
+        },
+        "type": {
+          "const": "loop",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "name",
+        "items_variable",
+        "item_instruction",
+        "max_iterations",
+        "position"
+      ],
+      "title": "LoopNode",
+      "type": "object"
+    },
+    "NodeScreenCaps": {
+      "description": "Guide 04 Phase 4.4: per-node screen mechanisms (doc \u00a74). Absent =\ndefaults, so every stored v3 graph parses unchanged. Lives at\n`AgentNode.screen` \u2014 NOT inside `capabilities`, which 02 already shipped\nas the \u00a73 tool-server string list.",
+      "properties": {
+        "computer_use": {
+          "default": false,
+          "title": "Computer Use",
+          "type": "boolean"
+        },
+        "screenshots": {
+          "default": "on_request",
+          "enum": [
+            "off",
+            "on_request"
+          ],
+          "title": "Screenshots",
+          "type": "string"
+        }
+      },
+      "title": "NodeScreenCaps",
+      "type": "object"
+    },
+    "NodeScript": {
+      "description": "05-SCRIPT-FASTPATH Phase 5.0: one user-authored Playwright script owned\nby a node \u2014 the JSONB home for script SOURCE (02's ScriptRef carries only\nthe wiring: filepath + failure_action). In the file tree this materializes\nas nodes/<Name>/scripts/<filename>. Secrets appear ONLY as ##NAME## tokens\n(01-CREDENTIALS), substituted just-in-time by the bridge launcher \u2014 never\nstored resolved.",
+      "properties": {
+        "filename": {
+          "title": "Filename",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "source"
+      ],
+      "title": "NodeScript",
+      "type": "object"
+    },
+    "OutcomeCheck": {
+      "description": "Structured verification (Phase W5). On an agent node's expected_outcome,\nfailure routes the ERROR edge even though the task completed.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "url_contains",
+            "text_present",
+            "element_exists",
+            "ai_judge"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "OutcomeCheck",
+      "type": "object"
+    },
+    "OutputNode": {
+      "description": "Roadmap 02 Phase 2.3: a terminal that emits STRUCTURED data \u2014\nThe-architecture.md \u00a72's second node kind ('agent or output').\nsuccess/error terminals stay valid; output is a payload-carrying superset.\nPayload validation against output_schema is 03's runtime.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "output_binding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DataSource"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "output_schema": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Schema"
+        },
+        "position": {
+          "$ref": "#/$defs/GraphPosition"
+        },
+        "type": {
+          "const": "output",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "name",
+        "position"
+      ],
+      "title": "OutputNode",
+      "type": "object"
+    },
+    "ScriptRef": {
+      "description": "Roadmap 02 Phase 2.3: fast-path script reference (The-architecture.md \u00a75).\nThe runtime (Node bridge, ##NAME## source substitution) is 05-SCRIPT-FASTPATH;\nthis is the contract field the tree serializes as settings.yaml `script:`.",
+      "properties": {
+        "failure_action": {
+          "default": "fallback_to_ai",
+          "enum": [
+            "fallback_to_ai",
+            "cancel_execution"
+          ],
+          "title": "Failure Action",
+          "type": "string"
+        },
+        "filepath": {
+          "title": "Filepath",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filepath"
+      ],
+      "title": "ScriptRef",
+      "type": "object"
+    },
+    "SubworkflowNode": {
+      "description": "Phase W6: run another agent's saved workflow graph as one node.\n`input_mapping` maps the child's variable names to literals or {{.VAR}}\ntemplates resolved from the parent run's context. Recursion is bounded at\nrun time (max depth 3 + visited-agent cycle detection \u2014 targets live in\nother DB rows, so reference cycles can't be checked statically).",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "input_mapping": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "title": "Input Mapping",
+          "type": "object"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/GraphPosition"
+        },
+        "target_agent_id": {
+          "title": "Target Agent Id",
+          "type": "string"
+        },
+        "type": {
+          "const": "subworkflow",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "name",
+        "target_agent_id",
+        "position"
+      ],
+      "title": "SubworkflowNode",
+      "type": "object"
+    },
+    "TerminalNode": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/GraphPosition"
+        },
+        "type": {
+          "enum": [
+            "success",
+            "error"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "position"
+      ],
+      "title": "TerminalNode",
+      "type": "object"
+    }
+  },
+  "$id": "https://kora.invalid/contracts/workflow/v1/workflow-graph.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/GraphEdge"
+      },
+      "title": "Edges",
+      "type": "array"
+    },
+    "entry": {
+      "title": "Entry",
+      "type": "string"
+    },
+    "input_schema": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Input Schema"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "nodes": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "agent": "#/$defs/AgentNode",
+            "condition": "#/$defs/ConditionNode",
+            "error": "#/$defs/TerminalNode",
+            "loop": "#/$defs/LoopNode",
+            "output": "#/$defs/OutputNode",
+            "subworkflow": "#/$defs/SubworkflowNode",
+            "success": "#/$defs/TerminalNode"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/AgentNode"
+          },
+          {
+            "$ref": "#/$defs/ConditionNode"
+          },
+          {
+            "$ref": "#/$defs/LoopNode"
+          },
+          {
+            "$ref": "#/$defs/SubworkflowNode"
+          },
+          {
+            "$ref": "#/$defs/TerminalNode"
+          },
+          {
+            "$ref": "#/$defs/OutputNode"
+          }
+        ]
+      },
+      "title": "Nodes",
+      "type": "array"
+    },
+    "settings": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GraphSettings"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "variables": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/GraphVariable"
+      },
+      "title": "Variables",
+      "type": "array"
+    },
+    "version": {
+      "default": 3,
+      "title": "Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "entry",
+    "nodes",
+    "edges"
+  ],
+  "title": "Kora Workflow Graph v1",
+  "type": "object",
+  "x-authority": "neutral-normative-12.2-B"
+}
