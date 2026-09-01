@@ -1,0 +1,56 @@
+{
+  "$id": "https://kora.invalid/contracts/workflow/v1/run-event.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "attempt_id": {
+      "maxLength": 128,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "kind": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "node_key": {
+      "maxLength": 512,
+      "type": "string"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "protocol_version": {
+      "const": "v1"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "sequence": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "protocol_version",
+    "run_id",
+    "sequence",
+    "kind",
+    "node_key",
+    "payload"
+  ],
+  "title": "Kora Run Event v1",
+  "type": "object",
+  "x-authority": "neutral-normative-12.2-B"
+}

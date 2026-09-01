@@ -1,0 +1,50 @@
+{
+  "accepted_reader_versions": [
+    "v1"
+  ],
+  "artifacts": [
+    {
+      "digest": "sha256:4138c087706253b35b865f9922ff10d4aafbf283f45ccca3205f40e225877a9f",
+      "name": "generated/workflow-protocol.ts"
+    },
+    {
+      "digest": "sha256:d5664b38bbe5787f68f35e6fe628a67e512f502301fead6816a74e3574e0b251",
+      "name": "generated/workflow_protocol.py"
+    },
+    {
+      "digest": "sha256:5edcf73fa32bb34e6cf3a7280583ff46ed752498a5461f8b157dee8166b6213c",
+      "name": "fixtures/digest-vectors.v1.json"
+    }
+  ],
+  "authority": "neutral-normative-12.2-B",
+  "canonicalization": "RFC8785",
+  "emitted_writer_version": "v1",
+  "generated_by": "workflows/backend/contracts/export.py",
+  "protocol_version": "v1",
+  "schemas": [
+    {
+      "digest": "sha256:2bb20580587d899ddacf3b576b7193ab02fca93fc74ba9822aa9c473a25fb942",
+      "name": "artifact-manifest.v1.schema.json"
+    },
+    {
+      "digest": "sha256:30c4f681b63654e46cca6e2fb71e190873ac2950be1c0b8bf3b2b93423618d28",
+      "name": "definition-bundle.v1.schema.json"
+    },
+    {
+      "digest": "sha256:199b8d8f71ce2cbb9a0c080b7f11d7eb68cfbeeb2e078e0b2618c98ea6970a8c",
+      "name": "interaction.v1.schema.json"
+    },
+    {
+      "digest": "sha256:21ceb3fc54cbdc253a9fd5adf33abf2864cc29db75e3142a99c599d730799974",
+      "name": "run-event.v1.schema.json"
+    },
+    {
+      "digest": "sha256:117397f88bbd7eee72db946eb5429dba3fd22fca7bce67f1c8d0092f1b26d70f",
+      "name": "runtime-result.v1.schema.json"
+    },
+    {
+      "digest": "sha256:52251d8c054bafcc43558288d0fedae61915c035eed7da2019ab941bd655c2a6",
+      "name": "workflow-graph.v1.schema.json"
+    }
+  ]
+}

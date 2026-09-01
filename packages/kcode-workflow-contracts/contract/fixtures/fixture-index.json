@@ -1,0 +1,27 @@
+{
+  "invalid_workflow_graphs": [
+    "invalid/capability-dependency.json",
+    "invalid/missing-output-source.json",
+    "invalid/missing-source-annotation.json",
+    "invalid/non-object-input-schema.json",
+    "invalid/remote-schema-ref.json",
+    "invalid/transition-schema-array.json",
+    "invalid/unknown-capability.json"
+  ],
+  "invalid_workflow_graph_expectations": {
+    "invalid/capability-dependency.json": "CAPABILITY_DEPENDENCY_MISSING",
+    "invalid/missing-output-source.json": "SOURCE_NODE_MISSING",
+    "invalid/missing-source-annotation.json": "SCHEMA_SOURCE_REQUIRED",
+    "invalid/non-object-input-schema.json": "SCHEMA_ROOT_NOT_OBJECT",
+    "invalid/remote-schema-ref.json": "SCHEMA_REF_NOT_LOCAL",
+    "invalid/transition-schema-array.json": "SCHEMA_ROOT_NOT_OBJECT",
+    "invalid/unknown-capability.json": "CAPABILITY_UNKNOWN"
+  },
+  "valid_workflow_graphs": [
+    "valid/advanced-graph.json",
+    "valid/boundary-loop.json",
+    "valid/forward-field.json",
+    "valid/simple-graph.json"
+  ],
+  "version": 1
+}

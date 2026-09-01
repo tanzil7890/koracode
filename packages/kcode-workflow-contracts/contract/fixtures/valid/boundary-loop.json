@@ -1,0 +1,40 @@
+{
+  "edges": [
+    {
+      "from": "loop",
+      "id": "done",
+      "to": "success",
+      "when": "success"
+    }
+  ],
+  "entry": "loop",
+  "name": "Maximum bounded loop",
+  "nodes": [
+    {
+      "id": "loop",
+      "item_instruction": "Process {{.ITEM}}",
+      "items_variable": "ITEMS",
+      "max_iterations": 50,
+      "name": "Loop",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "type": "loop"
+    },
+    {
+      "id": "success",
+      "position": {
+        "x": 100,
+        "y": 0
+      },
+      "type": "success"
+    }
+  ],
+  "variables": [
+    {
+      "name": "ITEMS"
+    }
+  ],
+  "version": 3
+}

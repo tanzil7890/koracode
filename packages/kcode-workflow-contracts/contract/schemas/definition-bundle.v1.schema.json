@@ -1,0 +1,63 @@
+{
+  "$id": "https://kora.invalid/contracts/workflow/v1/definition-bundle.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "canonicalization": {
+      "const": "RFC8785"
+    },
+    "members": {
+      "items": {
+        "properties": {
+          "agent_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "assets": {
+            "type": "array"
+          },
+          "graph_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "path": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "path",
+          "agent_id",
+          "graph_digest",
+          "assets"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "root_agent_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "root_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "canonicalization",
+    "root_agent_id",
+    "root_digest",
+    "members"
+  ],
+  "title": "Kora Recursive Definition Bundle v1",
+  "type": "object",
+  "x-authority": "neutral-normative-12.2-B"
+}

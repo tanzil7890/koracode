@@ -1,0 +1,110 @@
+{
+  "edges": [
+    {
+      "from": "agent",
+      "id": "route",
+      "label": "complete",
+      "to": "output",
+      "transition_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "ticket_id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ticket_id"
+        ],
+        "type": "object"
+      },
+      "when": "ai"
+    },
+    {
+      "from": "agent",
+      "id": "fail",
+      "outcome_role": "failure",
+      "to": "error",
+      "when": "ai"
+    }
+  ],
+  "entry": "agent",
+  "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "account": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "account"
+    ],
+    "type": "object"
+  },
+  "name": "Advanced",
+  "nodes": [
+    {
+      "capabilities": [
+        "browser",
+        "screen.snapshot"
+      ],
+      "id": "agent",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "account": {
+            "type": "object",
+            "x-source": {
+              "from": "run",
+              "pointer": "/account"
+            }
+          }
+        },
+        "required": [
+          "account"
+        ],
+        "type": "object"
+      },
+      "instruction": "Create a ticket",
+      "name": "Agent",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "type": "agent"
+    },
+    {
+      "id": "output",
+      "name": "Output",
+      "output_binding": {
+        "edge_id": "route",
+        "from": "edge"
+      },
+      "output_schema": {
+        "properties": {
+          "ticket_id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ticket_id"
+        ],
+        "type": "object"
+      },
+      "position": {
+        "x": 100,
+        "y": 0
+      },
+      "type": "output"
+    },
+    {
+      "id": "error",
+      "position": {
+        "x": 100,
+        "y": 100
+      },
+      "type": "error"
+    }
+  ],
+  "variables": [],
+  "version": 3
+}

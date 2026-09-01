@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@koracode/kcode-workflow-contracts",
+  "version": "0.0.0",
+  "description": "Generated Kora workflow protocol bindings and conformance validators",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "sync": "bun script/sync.ts",
+    "check:generated": "bun script/sync.ts --check",
+    "test": "bun test test",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "ajv": "8.20.0"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@typescript/native-preview": "catalog:"
+  }
+}

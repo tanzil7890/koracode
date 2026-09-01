@@ -1,0 +1,34 @@
+{
+  "edges": [
+    {
+      "from": "agent",
+      "id": "done",
+      "to": "success",
+      "when": "success"
+    }
+  ],
+  "entry": "agent",
+  "name": "Simple",
+  "nodes": [
+    {
+      "id": "agent",
+      "instruction": "Complete the task",
+      "name": "Agent",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "type": "agent"
+    },
+    {
+      "id": "success",
+      "position": {
+        "x": 100,
+        "y": 0
+      },
+      "type": "success"
+    }
+  ],
+  "variables": [],
+  "version": 3
+}

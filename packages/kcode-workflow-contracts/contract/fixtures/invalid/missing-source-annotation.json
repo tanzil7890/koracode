@@ -1,0 +1,42 @@
+{
+  "edges": [
+    {
+      "from": "agent",
+      "id": "done",
+      "to": "success",
+      "when": "success"
+    }
+  ],
+  "entry": "agent",
+  "name": "Missing source annotation",
+  "nodes": [
+    {
+      "id": "agent",
+      "input_schema": {
+        "properties": {
+          "account": {
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "instruction": "work",
+      "name": "Agent",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "type": "agent"
+    },
+    {
+      "id": "success",
+      "position": {
+        "x": 1,
+        "y": 0
+      },
+      "type": "success"
+    }
+  ],
+  "variables": [],
+  "version": 3
+}

@@ -1,0 +1,204 @@
+{
+  "$id": "https://kora.invalid/contracts/workflow/v1/interaction.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "input_request" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "authorization": { "type": "null" },
+          "capabilities": { "type": "null" },
+          "control": { "type": "null" },
+          "input": { "$ref": "#/$defs/InputRequest" }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "input_answer" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "authorization": { "type": "null" },
+          "capabilities": { "type": "null" },
+          "control": { "type": "null" },
+          "input": { "$ref": "#/$defs/InputAnswer" }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "authorization_request" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "authorization": { "$ref": "#/$defs/AuthorizationRequest" },
+          "capabilities": { "type": "null" },
+          "control": { "type": "null" },
+          "input": { "type": "null" }
+        },
+        "required": ["authorization"]
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "authorization_record" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "authorization": { "$ref": "#/$defs/AuthorizationRecord" },
+          "capabilities": { "type": "null" },
+          "control": { "type": "null" },
+          "input": { "type": "null" }
+        },
+        "required": ["authorization"]
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "control_state" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "authorization": { "type": "null" },
+          "capabilities": { "type": "null" },
+          "control": { "$ref": "#/$defs/ControlState" },
+          "input": { "type": "null" }
+        },
+        "required": ["control"]
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "backend_capabilities" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "authorization": { "type": "null" },
+          "capabilities": { "$ref": "#/$defs/BackendCapabilities" },
+          "control": { "type": "null" },
+          "input": { "type": "null" }
+        },
+        "required": ["capabilities"]
+      }
+    }
+  ],
+  "properties": {
+    "authorization": {
+      "anyOf": [
+        { "$ref": "#/$defs/AuthorizationRequest" },
+        { "$ref": "#/$defs/AuthorizationRecord" },
+        { "type": "null" }
+      ]
+    },
+    "capabilities": {
+      "anyOf": [
+        { "$ref": "#/$defs/BackendCapabilities" },
+        { "type": "null" }
+      ]
+    },
+    "control": {
+      "anyOf": [
+        { "$ref": "#/$defs/ControlState" },
+        { "type": "null" }
+      ]
+    },
+    "input": {
+      "anyOf": [
+        { "$ref": "#/$defs/InputRequest" },
+        { "$ref": "#/$defs/InputAnswer" },
+        { "type": "null" }
+      ]
+    },
+    "kind": {
+      "enum": [
+        "input_request",
+        "input_answer",
+        "authorization_request",
+        "authorization_record",
+        "control_state",
+        "backend_capabilities"
+      ],
+      "type": "string"
+    },
+    "protocol_version": { "const": "v1" },
+    "run_id": { "maxLength": 128, "minLength": 1, "type": "string" }
+  },
+  "required": ["protocol_version", "run_id", "kind"],
+  "title": "Kora Workflow Interaction v1",
+  "type": "object",
+  "x-authority": "neutral-normative-12.2-B",
+  "$defs": {
+    "AuthorizationRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "approved": { "type": "boolean" },
+        "approved_by": { "minLength": 1, "type": "string" },
+        "binding_digest": { "pattern": "^sha256:[0-9a-f]{64}$", "type": "string" },
+        "expires_at": { "format": "date-time", "type": "string" },
+        "request_id": { "minLength": 1, "type": "string" }
+      },
+      "required": ["request_id", "approved", "approved_by", "binding_digest", "expires_at"],
+      "type": "object"
+    },
+    "AuthorizationRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "action": { "minLength": 1, "type": "string" },
+        "binding_digest": { "pattern": "^sha256:[0-9a-f]{64}$", "type": "string" },
+        "expires_at": { "format": "date-time", "type": "string" },
+        "reason": { "maxLength": 2000, "type": "string" },
+        "request_id": { "minLength": 1, "type": "string" }
+      },
+      "required": ["request_id", "action", "reason", "binding_digest", "expires_at"],
+      "type": "object"
+    },
+    "BackendCapabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "backend": { "enum": ["python", "typescript"], "type": "string" },
+        "backend_version": { "minLength": 1, "type": "string" },
+        "supports_authorization_request": { "type": "boolean" },
+        "supports_cancel": { "type": "boolean" },
+        "supports_input_request": { "type": "boolean" },
+        "supports_pause": { "type": "boolean" },
+        "supports_resume": { "type": "boolean" }
+      },
+      "required": [
+        "backend",
+        "backend_version",
+        "supports_input_request",
+        "supports_authorization_request",
+        "supports_pause",
+        "supports_resume",
+        "supports_cancel"
+      ],
+      "type": "object"
+    },
+    "ControlState": {
+      "additionalProperties": false,
+      "properties": {
+        "command": { "enum": ["pause", "resume", "cancel"], "type": "string" },
+        "effective_status": { "enum": ["pending", "effective", "failed", "unsupported"], "type": "string" },
+        "idempotency_key": { "maxLength": 256, "minLength": 1, "type": "string" },
+        "request_status": { "enum": ["accepted", "rejected"], "type": "string" }
+      },
+      "required": ["command", "idempotency_key", "request_status", "effective_status"],
+      "type": "object"
+    },
+    "InputAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "answered_by": { "minLength": 1, "type": "string" },
+        "request_id": { "minLength": 1, "type": "string" },
+        "value": {}
+      },
+      "required": ["request_id", "answered_by", "value"],
+      "type": "object"
+    },
+    "InputRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "expires_at": { "format": "date-time", "type": ["string", "null"] },
+        "prompt": { "maxLength": 2000, "minLength": 1, "type": "string" },
+        "request_id": { "minLength": 1, "type": "string" },
+        "schema": { "type": "object" }
+      },
+      "required": ["request_id", "prompt", "schema", "expires_at"],
+      "type": "object"
+    }
+  }
+}
