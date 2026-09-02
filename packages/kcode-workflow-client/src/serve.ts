@@ -47,14 +47,23 @@ export interface TurnRequest {
 }
 
 export interface TurnResponder {
+  /** Short label for logs ("drill", "llm") so an operator reading the
+   * container log can tell which responder answered each turn. */
+  readonly name?: string
   respond(request: TurnRequest): Promise<{ reply: string; totalTokens: number }>
 }
+
+/** One structured log event: the engine's counterpart to the control plane's
+ * `authoring.engine` lines. Never carries turn content. */
+export type EngineTrace = (event: string, fields: Record<string, unknown>) => void
 
 /** Deterministic, network-free responder used by drills and tests. A real
  * model responder plugs in behind the same interface without touching the
  * wire surface. Clearly labels itself so a drill answer can never be
  * mistaken for an evaluated model answer. */
 export class DrillResponder implements TurnResponder {
+  readonly name = "drill"
+
   async respond(request: TurnRequest): Promise<{ reply: string; totalTokens: number }> {
     const reply =
       `[drill-responder] read-only acknowledgement for turn ${request.turnId}: ` +
@@ -92,6 +101,8 @@ export interface WorkflowServeOptions {
   readonly workspaceRoot: string
   readonly sessionTtlMs?: number
   readonly responder?: TurnResponder
+  /** Structured per-turn log sink; silent when omitted (tests). */
+  readonly trace?: EngineTrace
 }
 
 function json(status: number, body: unknown): Response {
@@ -102,6 +113,7 @@ export class WorkflowServe {
   private readonly sessions = new Map<string, SessionRecord>()
   private readonly bindings: SessionBindingAdapter
   private readonly responder: TurnResponder
+  private readonly trace: EngineTrace
 
   constructor(private readonly options: WorkflowServeOptions) {
     this.bindings = new SessionBindingAdapter({
@@ -111,6 +123,11 @@ export class WorkflowServe {
       maxHistoryBytes: 200_000,
     })
     this.responder = options.responder ?? new DrillResponder()
+    this.trace = options.trace ?? (() => {})
+  }
+
+  private get responderName(): string {
+    return this.responder.name ?? "custom"
   }
 
   sessionCount(): number {
@@ -225,10 +242,12 @@ export class WorkflowServe {
     if (existing) {
       // Remote idempotency (Phase 12.4 §10.1): a resubmit after a lost ack
       // repeats nothing — same remote turn, no duplicate events.
+      this.trace("turn_replayed", { turn_id: turnId, remote_turn_id: existing.remoteTurnId, state: existing.state })
       return json(200, { remote_turn_id: existing.remoteTurnId, replayed: true })
     }
     if (epoch < session.epoch) {
       // Engine-side epoch fence: a revoked/stale binding cannot start work.
+      this.trace("turn_refused", { turn_id: turnId, reason: "stale_epoch", epoch, session_epoch: session.epoch })
       return json(409, { error: "stale epoch", session_epoch: session.epoch })
     }
     session.epoch = epoch
@@ -249,6 +268,16 @@ export class WorkflowServe {
     const record: TurnRecord = { remoteTurnId, epoch, state: "accepted" }
     session.turns.set(turnId, record)
     this.emit(session, turnId, "turn_accepted", { remote_turn_id: remoteTurnId, epoch })
+    this.trace("turn_accepted", {
+      turn_id: turnId,
+      remote_turn_id: remoteTurnId,
+      epoch,
+      session: session.productSessionId,
+      agent: session.agentId,
+      responder: this.responderName,
+      history_messages: history.length,
+      callback_tokens: callback?.tokens.length ?? 0,
+    })
 
     // The turn runs in the background — a model-backed responder takes tens
     // of seconds and the wire contract is submit-then-poll-events.
@@ -262,19 +291,36 @@ export class WorkflowServe {
     record: TurnRecord,
     request: TurnRequest,
   ): Promise<void> {
+    const started = performance.now()
     try {
       const { reply, totalTokens } = await this.responder.respond(request)
       if (record.state === "accepted") {
         record.state = "completed"
         this.emit(session, turnId, "turn_completed", { reply, usage: { total_tokens: totalTokens } })
+        this.trace("turn_completed", {
+          turn_id: turnId,
+          responder: this.responderName,
+          duration_ms: Math.round(performance.now() - started),
+          total_tokens: totalTokens,
+          reply_chars: reply.length,
+        })
+      } else {
+        this.trace("turn_result_dropped", { turn_id: turnId, responder: this.responderName, state: record.state })
       }
     } catch (error) {
+      const name = error instanceof Error ? error.name : "Error"
       if (record.state === "accepted") {
         record.state = "failed"
         this.emit(session, turnId, "turn_failed", {
           error: error instanceof Error ? `${error.name}: ${error.message.slice(0, 300)}` : "responder failed",
         })
       }
+      this.trace("turn_failed", {
+        turn_id: turnId,
+        responder: this.responderName,
+        duration_ms: Math.round(performance.now() - started),
+        error: name,
+      })
     }
   }
 
@@ -284,6 +330,7 @@ export class WorkflowServe {
     if (record.state === "accepted") {
       record.state = "cancelled"
       this.emit(session, turnId, "turn_cancelled", {})
+      this.trace("turn_cancelled", { turn_id: turnId, responder: this.responderName })
     }
     return json(200, { state: record.state })
   }

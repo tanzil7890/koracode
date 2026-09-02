@@ -26,7 +26,7 @@ import {
 import { WorkflowControlPlaneClient } from "./client"
 import { assertAllowedUrl, type EgressPolicy } from "./egress"
 import { PROPOSAL_WORKFLOW_PROFILE } from "./profile"
-import type { TurnRequest, TurnResponder } from "./serve"
+import type { EngineTrace, TurnRequest, TurnResponder } from "./serve"
 import { ToolDeniedError, WORKFLOW_PROPOSAL_TOOLS, WORKFLOW_READ_TOOLS, resolveProposalTool } from "./tools"
 
 const MAX_TOOL_CALLS = 10
@@ -40,6 +40,8 @@ export interface LLMResponderOptions {
   readonly modelOrigin: string
   readonly policy: EgressPolicy
   readonly fetchImpl?: typeof fetch
+  /** Structured log sink for proposal outcomes and denied tools; silent when omitted. */
+  readonly trace?: EngineTrace
 }
 
 interface ChatMessage {
@@ -109,8 +111,12 @@ export const SCHEMA_HINT =
   "idempotency_key. A result with status 'proposed' means the change set exists: stop and summarize it."
 
 export class LLMResponder implements TurnResponder {
+  readonly name = "llm"
+  private readonly trace: EngineTrace
+
   constructor(private readonly options: LLMResponderOptions) {
     assertAllowedUrl(`${options.modelOrigin}/v1/chat/completions`, options.policy)
+    this.trace = options.trace ?? (() => {})
   }
 
   private async completion(messages: ChatMessage[], tools: unknown[] | undefined): Promise<{
@@ -198,6 +204,7 @@ export class LLMResponder implements TurnResponder {
   /** The tool dispatch with the proposal interception. Read tools pass
    * straight through (head is snapshotted); validate/propose are guarded. */
   private async runTool(
+    turnId: string,
     name: string,
     args: Record<string, unknown>,
     client: WorkflowControlPlaneClient,
@@ -243,7 +250,18 @@ export class LLMResponder implements TurnResponder {
         }
       }
       const prepared = await this.prepareCandidate(client, agentId, rawCandidate, state)
-      if (!prepared.ok) return prepared.result
+      if (!prepared.ok) {
+        const validation = prepared.result["validation"] as JsonObject | undefined
+        this.trace("proposal_not_created", {
+          turn_id: turnId,
+          agent: agentId,
+          reason: prepared.result["reason"],
+          issues: Array.isArray(validation?.["issues"]) ? (validation!["issues"] as unknown[]).length : 0,
+          repairs: Array.isArray(prepared.result["repairs"]) ? (prepared.result["repairs"] as unknown[]).length : 0,
+          attempt: state.attempts,
+        })
+        return prepared.result
+      }
       const output = (await client.propose(agentId, {
         base_generation: Number(args["base_generation"]),
         base_hash: String(args["base_hash"]),
@@ -251,6 +269,15 @@ export class LLMResponder implements TurnResponder {
         idempotency_key: String(args["idempotency_key"]),
       })) as JsonObject
       if (output["status"] === "proposed") state.proposed = true
+      this.trace("proposal_created", {
+        turn_id: turnId,
+        agent: agentId,
+        change_set_id: output["change_set_id"],
+        status: output["status"],
+        risk_level: output["risk_level"],
+        repairs: prepared.repairs.length,
+        attempt: state.attempts,
+      })
       return { ...output, repairs: prepared.repairs }
     }
     return tool.execute(client, args)
@@ -319,6 +346,7 @@ export class LLMResponder implements TurnResponder {
         // about to stop. Ask once; a reasoned "no change needed" is fine.
         if (client && state.attempts > 0 && !state.proposed && !state.nudged && tokens.length > 0) {
           state.nudged = true
+          this.trace("completion_nudge", { turn_id: request.turnId, attempts: state.attempts, round })
           messages.push(message)
           messages.push({
             role: "user",
@@ -328,12 +356,22 @@ export class LLMResponder implements TurnResponder {
           })
           continue
         }
+        this.trace("responder_done", {
+          turn_id: request.turnId,
+          model: this.options.model,
+          rounds: round + 1,
+          tool_calls: toolCalls,
+          total_tokens: totalTokens,
+          proposed: state.proposed,
+          tokens_left: tokens.length,
+        })
         return { reply: message.content ?? "", totalTokens }
       }
       messages.push(message)
       for (const call of message.tool_calls) {
         let result: string
         if (toolCalls >= MAX_TOOL_CALLS) {
+          this.trace("tool_budget_exhausted", { turn_id: request.turnId, tool: call.function.name, max: MAX_TOOL_CALLS })
           result = JSON.stringify({ error: "tool budget exhausted" })
         } else {
           toolCalls += 1
@@ -342,10 +380,16 @@ export class LLMResponder implements TurnResponder {
             // The turn is bound to ONE workflow: the model never chooses the
             // agent (a mistyped id was a whole-turn 404 in the live trials).
             args["agent_id"] = callback!.agentId
-            const output = await this.runTool(call.function.name, args, client, state)
+            const output = await this.runTool(request.turnId, call.function.name, args, client, state)
             result = JSON.stringify(output).slice(0, TOOL_RESULT_CAP)
           } catch (error) {
             // Denied or failing tools surface as data, never as execution.
+            const name = error instanceof Error ? error.name : "Error"
+            this.trace(name === "ToolDeniedError" ? "tool_denied" : "tool_failed", {
+              turn_id: request.turnId,
+              tool: call.function.name,
+              error: name,
+            })
             result = JSON.stringify({
               error: error instanceof Error ? `${error.name}: ${error.message.slice(0, 300)}` : "tool failed",
             })
@@ -354,6 +398,15 @@ export class LLMResponder implements TurnResponder {
         messages.push({ role: "tool", content: result, tool_call_id: call.id })
       }
     }
+    this.trace("responder_done", {
+      turn_id: request.turnId,
+      model: this.options.model,
+      rounds: MAX_MODEL_ROUNDS,
+      tool_calls: toolCalls,
+      total_tokens: totalTokens,
+      proposed: state.proposed,
+      reason: "round_budget_exhausted",
+    })
     return { reply: "(turn ended: model round budget exhausted)", totalTokens }
   }
 }
