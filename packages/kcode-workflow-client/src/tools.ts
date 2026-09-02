@@ -249,14 +249,44 @@ export async function waitForRun(
   return { resource, polls: maxPolls, waited_ms: waited, reason: "timeout" }
 }
 
+/** Code of the local refusal a run-family tool returns when called without a
+ * run id — typically after a confirmation-gated start (12.8 step 7) whose
+ * result is {status:'requested', run_id:null}: nothing is running yet, so
+ * there is nothing to poll, wait on, or control. */
+export const RUN_ID_REQUIRED_CODE = "RUN_ID_REQUIRED"
+
+/** The refusal object. Returned (never thrown) and never spends a gateway token. */
+export function missingRunIdResult(toolId: string): Record<string, unknown> {
+  return {
+    error: `RunIdRequired: ${toolId} needs a run_id`,
+    code: RUN_ID_REQUIRED_CODE,
+    tool: toolId,
+    message:
+      "run_id is null or missing. A start result with status 'requested' has no run yet: the run has NOT started until a " +
+      "human confirms it in the Authorizations panel, so it cannot be polled, waited on, or controlled. Report the " +
+      "authorization_id instead.",
+  }
+}
+
+/** Wrap a run-id tool so a null/undefined/empty run_id is refused locally. */
+function requiringRunId(toolId: string, execute: WorkflowToolDescriptor["execute"]): WorkflowToolDescriptor["execute"] {
+  return (client, args, context) => {
+    if (!optionalString(args["run_id"])) return Promise.resolve(missingRunIdResult(toolId))
+    return execute(client, args, context)
+  }
+}
+
 export const WORKFLOW_RUN_TOOLS: readonly WorkflowToolDescriptor[] = [
   {
     id: "workflow_run_start",
     description:
       "Start a durable run of the SAVED workflow — the published version by default (source 'published'; 'version' with " +
       "version_number for a specific published version; 'draft_snapshot' for the current unpublished draft). Returns 202 " +
-      "with the run resource (run_id, status, legal_controls, links); the run continues independently of this chat. " +
-      "idempotency_key is required and must be unique per intended run — repeating a key replays the same run. " +
+      "with EITHER the run resource (run_id, a run status such as 'queued'/'running', legal_controls, links) — the run then " +
+      "continues independently of this chat — OR, when starting requires confirmation, {status:'requested', " +
+      "authorization_id, run_id:null, binding}: the run has NOT started until a human confirms it with one click in the " +
+      "Authorizations panel; report the authorization_id and never wait on, poll, or control a requested run. " +
+      "idempotency_key is required and must be unique per intended run — repeating a key replays the same result. " +
       "An error with code NO_PUBLISHED_VERSION means there is nothing published: offer source 'draft_snapshot' instead of retrying.",
     parameters: {
       type: "object",
@@ -310,9 +340,10 @@ export const WORKFLOW_RUN_TOOLS: readonly WorkflowToolDescriptor[] = [
     id: "workflow_run_get",
     description:
       "Read one run's full resource: status, definition source/version, control_state, legal_controls (the only controls " +
-      "the runtime can honor right now), waiting_request (a declared input request, or null), outcome, error, output, links.",
+      "the runtime can honor right now), waiting_request (a declared input request, or null), outcome, error, output, links. " +
+      "Requires a real run_id — a start result with status 'requested' has none (run_id null) and cannot be read.",
     parameters: runIdParam,
-    execute: (client, args) => client.runResource(String(args["run_id"])),
+    execute: requiringRunId("workflow_run_get", (client, args) => client.runResource(String(args["run_id"]))),
   },
   {
     id: "workflow_run_control",
@@ -332,12 +363,13 @@ export const WORKFLOW_RUN_TOOLS: readonly WorkflowToolDescriptor[] = [
       required: ["run_id", "command", "command_id"],
       additionalProperties: false,
     },
-    execute: (client, args) =>
+    execute: requiringRunId("workflow_run_control", (client, args) =>
       client.controlRun(String(args["run_id"]), {
         command: String(args["command"]) as RunControlCommand,
         command_id: String(args["command_id"]),
         ...(optionalString(args["expected_state"]) ? { expected_state: String(args["expected_state"]) } : {}),
       }),
+    ),
   },
   {
     id: "workflow_run_submit_input",
@@ -356,19 +388,20 @@ export const WORKFLOW_RUN_TOOLS: readonly WorkflowToolDescriptor[] = [
       required: ["run_id", "input_id", "request_id", "payload"],
       additionalProperties: false,
     },
-    execute: (client, args) =>
+    execute: requiringRunId("workflow_run_submit_input", (client, args) =>
       client.submitRunInput(String(args["run_id"]), {
         input_id: String(args["input_id"]),
         request_id: String(args["request_id"]),
         payload: args["payload"],
         ...(optionalString(args["expected_state"]) ? { expected_state: String(args["expected_state"]) } : {}),
       }),
+    ),
   },
   {
     id: "workflow_run_capabilities",
     description: "Read what the run's backend supports (pause/resume/cancel/input requests) before requesting a control.",
     parameters: runIdParam,
-    execute: (client, args) => client.runCapabilities(String(args["run_id"])),
+    execute: requiringRunId("workflow_run_capabilities", (client, args) => client.runCapabilities(String(args["run_id"]))),
   },
   {
     id: "workflow_run_wait",
@@ -376,7 +409,8 @@ export const WORKFLOW_RUN_TOOLS: readonly WorkflowToolDescriptor[] = [
       "Bounded client-side wait: poll the run resource until status is terminal (completed/failed/cancelled), paused, or a " +
       "waiting_request appears — or max_polls (1..6, default 4) at interval_ms (1000..10000, default 5000) run out. Returns " +
       "the last resource plus {polls, waited_ms, reason: 'terminal'|'paused'|'waiting_input'|'timeout'}. Every poll spends " +
-      "one gateway token, so call it at most once per turn.",
+      "one gateway token, so call it at most once per turn. Requires a real run_id: never call it for a start result with " +
+      "status 'requested' (run_id null) — that run has not begun.",
     parameters: {
       type: "object",
       properties: {
@@ -392,7 +426,7 @@ export const WORKFLOW_RUN_TOOLS: readonly WorkflowToolDescriptor[] = [
       required: ["run_id"],
       additionalProperties: false,
     },
-    execute: (client, args, context) => waitForRun(client, args, context),
+    execute: requiringRunId("workflow_run_wait", (client, args, context) => waitForRun(client, args, context)),
   },
 ]
 

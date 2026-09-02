@@ -9,9 +9,9 @@ import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-import { LLMResponder, runProcedure } from "../src/llm-responder"
+import { LLMResponder, RUN_START_REQUESTED_REMINDER, runProcedure } from "../src/llm-responder"
 import { DEFAULT_CALLBACK_FEATURES, WorkflowServe, callbackFeatures, type TurnRequest } from "../src/serve"
-import { WORKFLOW_PROPOSAL_TOOLS, WORKFLOW_READ_TOOLS, WORKFLOW_RUN_TOOLS } from "../src/tools"
+import { RUN_ID_REQUIRED_CODE, WORKFLOW_PROPOSAL_TOOLS, WORKFLOW_READ_TOOLS, WORKFLOW_RUN_TOOLS } from "../src/tools"
 
 const POLICY = { allowedOrigins: ["https://api.openai.test", "https://kora.internal:8000"] }
 const BASE = "https://kora.internal:8000/internal/kora/v1"
@@ -391,5 +391,127 @@ describe("serve.ts parses callback.features", () => {
     const { events: wireEvents } = (await wire.json()) as { events: { kind: string; payload: Record<string, unknown> }[] }
     expect(wireEvents[0]!.kind).toBe("turn_accepted")
     expect(Object.keys(wireEvents[0]!.payload).sort()).toEqual(["epoch", "remote_turn_id"])
+  })
+})
+
+// ------------------------------------------------ confirmation-gated start
+
+/** The gateway's 202 when KORACODE_RUN_START_REQUIRES_CONFIRMATION is on: a
+ * bound 'run.start' authorization request, not a run. */
+const REQUESTED_START = {
+  status: "requested",
+  subject_kind: "run.start",
+  authorization_id: "auth-run-1",
+  expires_at: "2026-09-03T00:00:00Z",
+  binding: { agent_id: "agent-1", source: "published", version_number: 3, definition_digest: "sha256:d", variable_values: {} },
+  run_id: null,
+  replayed: false,
+}
+
+const eventsNamed = (seen: Seen, name: string) => seen.events.filter((entry) => entry.event === name)
+
+describe("confirmation-gated run start (12.8 step 7)", () => {
+  test("a 'requested' result is NOT a start: reminder attached, run_start_requested traced, runs_started stays 0", async () => {
+    const { responder, seen } = responderWith({
+      model: [
+        () => modelMessage(null, [{ name: "workflow_run_start", args: { agent_id: "agent-1", idempotency_key: "t1:run" } }]),
+        () => modelMessage("The run has not started: authorization auth-run-1 awaits your confirmation in the Authorizations panel."),
+      ],
+      gateway: () => Response.json(REQUESTED_START, { status: 202 }),
+    })
+    const result = await responder.respond(turn(RUN_CALLBACK))
+    expect(result.reply).toContain("auth-run-1")
+
+    expect(seen.gateway).toHaveLength(1) // the start call only — nothing was polled
+    expect(seen.gateway[0]).toMatchObject({ url: `${BASE}/workflows/agent-1/runs`, method: "POST" })
+    const payload = lastToolResult(seen)
+    expect(payload).toMatchObject({ status: "requested", subject_kind: "run.start", authorization_id: "auth-run-1", run_id: null })
+    expect(payload["reminder"]).toBe(RUN_START_REQUESTED_REMINDER)
+    expect(payload["reminder"]).toBe(
+      "NOT started. A human must confirm this run in the Authorizations panel; report the authorization_id and say the run " +
+        "has not begun. Do not call workflow_run_wait or workflow_run_get for it.",
+    )
+
+    expect(event(seen, "run_started")).toBeUndefined()
+    expect(event(seen, "run_start_requested")!.fields).toEqual({ turn_id: "t1", authorization_id: "auth-run-1", source: "published" })
+    expect(event(seen, "responder_done")!.fields).toMatchObject({ runs_started: 0, runs_requested: 1, tool_calls: 1, tokens_left: 7 })
+  })
+
+  test("the traced source follows the binding, falling back to the model's argument", async () => {
+    const { responder, seen } = responderWith({
+      model: [
+        () =>
+          modelMessage(null, [
+            { name: "workflow_run_start", args: { agent_id: "agent-1", idempotency_key: "t1:run", source: "draft_snapshot" } },
+          ]),
+        () => modelMessage("requested"),
+      ],
+      gateway: () => Response.json({ ...REQUESTED_START, binding: { agent_id: "agent-1" } }, { status: 202 }),
+    })
+    await responder.respond(turn(RUN_CALLBACK))
+    expect(event(seen, "run_start_requested")!.fields["source"]).toBe("draft_snapshot")
+  })
+
+  test("a run resource result still behaves as before: run_started, no reminder, runs_requested stays 0", async () => {
+    const { responder, seen } = responderWith({
+      model: [
+        () => modelMessage(null, [{ name: "workflow_run_start", args: { agent_id: "agent-1", idempotency_key: "t1:run" } }]),
+        () => modelMessage("Started run-77 (queued)."),
+      ],
+      gateway: () => Response.json(resource({ status: "queued" }), { status: 202 }),
+    })
+    await responder.respond(turn(RUN_CALLBACK))
+    const payload = lastToolResult(seen)
+    expect(payload["run_id"]).toBe("run-77")
+    expect(payload["reminder"]).toBeUndefined()
+    expect(event(seen, "run_start_requested")).toBeUndefined()
+    expect(event(seen, "run_started")!.fields).toEqual({ turn_id: "t1", run_id: "run-77", status: "queued", source: "published" })
+    expect(event(seen, "responder_done")!.fields).toMatchObject({ runs_started: 1, runs_requested: 0 })
+  })
+
+  test("wait/get/control with a null or missing run_id are refused locally: no gateway call, error object, traced", async () => {
+    const { responder, seen } = responderWith({
+      model: [
+        () =>
+          modelMessage(null, [
+            { name: "workflow_run_wait", args: { run_id: null, max_polls: 2 } },
+            { name: "workflow_run_get", args: {} },
+            { name: "workflow_run_control", args: { run_id: null, command: "cancel", command_id: "t1:cancel" } },
+          ]),
+        () => modelMessage("That run has not started, so there is nothing to wait for."),
+      ],
+      gateway: () => Response.json(resource()),
+    })
+    await responder.respond(turn(RUN_CALLBACK, "wait for the run I just requested"))
+    expect(seen.gateway).toEqual([]) // no token spent, no URL built from 'null'
+    expect(seen.sleeps).toEqual([])
+
+    const request = seen.model[seen.model.length - 1]!
+    const results = request.messages.filter((message) => message.role === "tool").map((message) => JSON.parse(message.content ?? "{}"))
+    expect(results).toHaveLength(3)
+    for (const [index, toolId] of ["workflow_run_wait", "workflow_run_get", "workflow_run_control"].entries()) {
+      expect(results[index]).toMatchObject({ code: RUN_ID_REQUIRED_CODE, tool: toolId })
+      expect(String(results[index]["error"])).toContain("RunIdRequired")
+      expect(String(results[index]["message"])).toContain("has NOT started")
+      expect(String(results[index]["message"])).toContain("Authorizations panel")
+    }
+    expect(eventsNamed(seen, "run_tool_refused").map((entry) => entry.fields)).toEqual([
+      { turn_id: "t1", tool: "workflow_run_wait", reason: "missing_run_id" },
+      { turn_id: "t1", tool: "workflow_run_get", reason: "missing_run_id" },
+      { turn_id: "t1", tool: "workflow_run_control", reason: "missing_run_id" },
+    ])
+    expect(event(seen, "run_wait")).toBeUndefined()
+    expect(event(seen, "run_control")).toBeUndefined()
+    expect(event(seen, "tool_failed")).toBeUndefined() // refused, not failed
+    expect(event(seen, "responder_done")!.fields).toMatchObject({ tokens_left: 8, tool_calls: 3 })
+  })
+
+  test("the RUN PROCEDURE says a requested run has not started, needs one-click confirmation, and is never polled", () => {
+    const text = runProcedure("turn-9")
+    expect(text).toContain("A result with status 'requested' (run_id null, authorization_id set) means the run has NOT started")
+    expect(text).toContain("one-click confirmation in the Authorizations panel")
+    expect(text).toContain("never call workflow_run_wait or workflow_run_get for a requested run")
+    expect(text).toContain("never say it is running or queued")
+    expect(text).toContain("Only when the start result is a run resource")
   })
 })

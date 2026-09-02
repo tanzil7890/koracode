@@ -18,12 +18,14 @@ import {
   profileAllows,
 } from "../src/profile"
 import {
+  RUN_ID_REQUIRED_CODE,
   RUN_WAIT_LIMITS,
   ToolDeniedError,
   WORKFLOW_PROPOSAL_TOOLS,
   WORKFLOW_READ_TOOLS,
   WORKFLOW_RUN_TOOLS,
   assertReadOnlySurface,
+  missingRunIdResult,
   resolveFeatureTool,
   resolveProposalTool,
   resolveRunTool,
@@ -486,5 +488,66 @@ describe("run profile posture", () => {
     expect(RUN_WORKFLOW_PROFILE.prompt).toContain("effective_status 'effective'")
     expect(RUN_WORKFLOW_PROFILE.prompt).toContain("cannot change the workflow definition")
     expect(RUN_WORKFLOW_PROFILE.prompt).toContain(UNTRUSTED_CONTENT_POLICY)
+  })
+})
+
+describe("confirmation-gated start and the local run_id guard (12.8 step 7)", () => {
+  const REQUESTED_START = {
+    status: "requested",
+    subject_kind: "run.start",
+    authorization_id: "auth-run-1",
+    expires_at: "2026-09-03T00:00:00Z",
+    binding: { agent_id: "agent-1", source: "published", version_number: 3, definition_digest: "sha256:d", variable_values: {} },
+    run_id: null,
+    replayed: false,
+  }
+
+  test("client-level: nothing changes on the wire — a 'requested' 202 body is passed through verbatim", async () => {
+    const { client, calls } = clientWith(() => Response.json(REQUESTED_START, { status: 202 }))
+    const out = await client.startRun("agent-1", { idempotency_key: "t1:run", source: "published", turn_id: "t1" })
+    expect(calls[0]).toMatchObject({ url: `${BASE}/workflows/agent-1/runs`, method: "POST" })
+    expect(calls[0]!.body).toEqual({ idempotency_key: "t1:run", source: "published", turn_id: "t1" })
+    expect(out).toEqual(REQUESTED_START) // the client interprets nothing; the responder does
+  })
+
+  test("the start tool also passes a 'requested' result through untouched (the reminder is the responder's)", async () => {
+    const { client } = clientWith(() => Response.json(REQUESTED_START, { status: 202 }))
+    const out = await runTool("workflow_run_start").execute(client, { agent_id: "agent-1", idempotency_key: "t1:run" })
+    expect(out).toEqual(REQUESTED_START)
+  })
+
+  test.each(["workflow_run_wait", "workflow_run_get", "workflow_run_control", "workflow_run_submit_input", "workflow_run_capabilities"])(
+    "%s with a null, missing, or empty run_id is refused locally with an error object and no gateway call",
+    async (toolId) => {
+      const { client, calls } = clientWith(() => Response.json(resource()))
+      const extras = { command: "cancel", command_id: "t1:cancel", input_id: "t1:input", request_id: "req-1", payload: {}, max_polls: 3 }
+      for (const runId of [null, undefined, ""]) {
+        const result = (await runTool(toolId).execute(client, { ...extras, run_id: runId }, fakeSleep())) as Record<string, unknown>
+        expect(result).toEqual(missingRunIdResult(toolId))
+        expect(result["code"]).toBe(RUN_ID_REQUIRED_CODE)
+        expect(result["tool"]).toBe(toolId)
+        expect(String(result["error"])).toBe(`RunIdRequired: ${toolId} needs a run_id`)
+        expect(String(result["message"])).toContain("has NOT started")
+      }
+      expect(calls).toEqual([]) // never a URL built from 'null'/'undefined', never a token spent
+      // With a real run id the same tool still reaches the gateway.
+      await runTool(toolId).execute(client, { ...extras, run_id: "run-77", max_polls: 1 }, fakeSleep())
+      expect(calls).toHaveLength(1)
+      expect(calls[0]!.url).toContain(`${BASE}/runs/run-77/`)
+    },
+  )
+
+  test("waitForRun itself is unchanged when given a run id", async () => {
+    const { client, calls } = clientWith(() => Response.json(resource({ status: "completed" })))
+    const result = await waitForRun(client, { run_id: "run-77" }, fakeSleep())
+    expect(result).toMatchObject({ reason: "terminal", polls: 1 })
+    expect(calls).toHaveLength(1)
+  })
+
+  test("the start tool description explains both 202 shapes; wait/get descriptions demand a real run_id", () => {
+    expect(runTool("workflow_run_start").description).toContain("status:'requested'")
+    expect(runTool("workflow_run_start").description).toContain("has NOT started until a human confirms it")
+    expect(runTool("workflow_run_wait").description).toContain("Requires a real run_id")
+    expect(runTool("workflow_run_get").description).toContain("Requires a real run_id")
   })
 })

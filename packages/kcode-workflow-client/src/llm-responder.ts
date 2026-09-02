@@ -46,7 +46,14 @@ import {
   RUN_WORKFLOW_PROFILE,
 } from "./profile"
 import { callbackFeatures, type EngineTrace, type TurnRequest, type TurnResponder } from "./serve"
-import { ToolDeniedError, isAuthorizationToolId, resolveFeatureTool, toolsForFeatures, type RunWaitResult } from "./tools"
+import {
+  RUN_ID_REQUIRED_CODE,
+  ToolDeniedError,
+  isAuthorizationToolId,
+  resolveFeatureTool,
+  toolsForFeatures,
+  type RunWaitResult,
+} from "./tools"
 
 const MAX_TOOL_CALLS = 10
 const MAX_MODEL_ROUNDS = 14
@@ -87,6 +94,9 @@ interface TurnState {
   nudged: boolean
   /** Runs started this turn (12.8) — reported in the loop summary trace. */
   runsStarted: number
+  /** Confirmation-gated starts this turn: the gateway answered with a
+   * 'run.start' authorization request instead of a run (12.8 step 7). */
+  runsRequested: number
   /** Authorization requests created this turn (12.8 step 7). */
   authorizationsRequested: number
 }
@@ -135,6 +145,12 @@ export const SCHEMA_HINT =
   "with status 'not_proposed' lists 'guidance' — fix EXACTLY those points and call workflow_propose again with a NEW " +
   "idempotency_key. A result with status 'proposed' means the change set exists: stop and summarize it."
 
+/** Attached to a confirmation-gated start result ({status:'requested',
+ * run_id:null}) so the model cannot narrate a request as a running run. */
+export const RUN_START_REQUESTED_REMINDER =
+  "NOT started. A human must confirm this run in the Authorizations panel; report the authorization_id and say the run " +
+  "has not begun. Do not call workflow_run_wait or workflow_run_get for it."
+
 /** The run-side procedure, appended to the system prompt ONLY when the turn's
  * callback grants the 'run' feature. Idempotency/command/input ids derive
  * from the turn id so a retried turn replays instead of starting twice. */
@@ -144,11 +160,15 @@ export function runProcedure(turnId: string): string {
     `1. Start a run ONLY when the user explicitly asks to run, execute, or start the workflow — never to test or check a ` +
     `proposal, and never more than one run per request unless the user asks for more.\n` +
     `2. workflow_run_start runs the SAVED workflow; source defaults to 'published' — say so in your answer. Use ` +
-    `idempotency_key '${turnId}:run'. If the tool result is an error with code NO_PUBLISHED_VERSION, do not retry: tell the ` +
+    `idempotency_key '${turnId}:run'. A result with status 'requested' (run_id null, authorization_id set) means the run ` +
+    `has NOT started: it needs the user's one-click confirmation in the Authorizations panel. Report the authorization_id, ` +
+    `say the run has not begun, and STOP — never call workflow_run_wait or workflow_run_get for a requested run, and never ` +
+    `say it is running or queued. If the tool result is an error with code NO_PUBLISHED_VERSION, do not retry: tell the ` +
     `user there is no published version and OFFER source 'draft_snapshot' (runs the current draft) — start it only after ` +
     `they confirm.\n` +
-    `3. After starting you may call workflow_run_wait ONCE (bounded polling; every poll spends a gateway token). Then report ` +
-    `run_id, status, and legal_controls VERBATIM from the latest resource, and say the run continues independently of this chat.\n` +
+    `3. Only when the start result is a run resource (it has a run_id and a run status such as 'queued' or 'running') may ` +
+    `you call workflow_run_wait ONCE (bounded polling; every poll spends a gateway token). Then report run_id, status, and ` +
+    `legal_controls VERBATIM from the latest resource, and say the run continues independently of this chat.\n` +
     `4. Controls: request only a command listed in the resource's legal_controls, with command_id '${turnId}:<command>'. ` +
     `Accepted ≠ effective. NEVER say a run is paused, resumed, or cancelled unless the control result's effective_status is ` +
     `'effective'; 'pending' means requested but not yet applied, 'unsupported' means the runtime cannot do it, 'failed' ` +
@@ -298,18 +318,34 @@ export class LLMResponder implements TurnResponder {
       args["turn_id"] = turnId
       const output = await tool.execute(client, args, context)
       const resource = isObject(output) ? output : {}
+      const argSource = typeof args["source"] === "string" && args["source"] ? args["source"] : "published"
+      if (resource["status"] === "requested" && (resource["run_id"] === null || resource["run_id"] === undefined)) {
+        // Confirmation-gated start (12.8 step 7): the gateway materialized a
+        // bound 'run.start' authorization instead of a run. Nothing runs until
+        // a human confirms it, so this is neither a start nor pollable — the
+        // reminder travels with the result so the model cannot miss it.
+        const binding = isObject(resource["binding"]) ? resource["binding"] : {}
+        state.runsRequested += 1
+        this.trace("run_start_requested", {
+          turn_id: turnId,
+          authorization_id: resource["authorization_id"],
+          source: binding["source"] ?? argSource,
+        })
+        return { ...resource, reminder: RUN_START_REQUESTED_REMINDER }
+      }
       const definition = isObject(resource["definition"]) ? resource["definition"] : {}
       state.runsStarted += 1
       this.trace("run_started", {
         turn_id: turnId,
         run_id: resource["run_id"],
         status: resource["status"],
-        source: definition["source"] ?? (typeof args["source"] === "string" && args["source"] ? args["source"] : "published"),
+        source: definition["source"] ?? argSource,
       })
       return output
     }
     if (name === "workflow_run_control") {
       const output = await tool.execute(client, args, context)
+      if (this.noteRunIdRefusal(turnId, name, output)) return output
       const result = isObject(output) ? output : {}
       this.trace("run_control", {
         turn_id: turnId,
@@ -320,8 +356,10 @@ export class LLMResponder implements TurnResponder {
       return output
     }
     if (name === "workflow_run_wait") {
-      const output = (await tool.execute(client, args, context)) as RunWaitResult
-      this.trace("run_wait", { turn_id: turnId, run_id: args["run_id"], polls: output.polls, reason: output.reason })
+      const output = await tool.execute(client, args, context)
+      if (this.noteRunIdRefusal(turnId, name, output)) return output
+      const waited = output as RunWaitResult
+      this.trace("run_wait", { turn_id: turnId, run_id: args["run_id"], polls: waited.polls, reason: waited.reason })
       return output
     }
     if (name === "workflow_request_authorization") {
@@ -415,7 +453,18 @@ export class LLMResponder implements TurnResponder {
       })
       return { ...output, repairs: prepared.repairs }
     }
-    return tool.execute(client, args, context)
+    const output = await tool.execute(client, args, context)
+    this.noteRunIdRefusal(turnId, name, output)
+    return output
+  }
+
+  /** A run-family tool refused itself locally for want of a run_id (e.g. the
+   * model tried to read or wait on a confirmation-gated start). No gateway
+   * token was spent; the result explains itself — this only leaves a trace. */
+  private noteRunIdRefusal(turnId: string, name: string, output: unknown): boolean {
+    if (!isObject(output) || output["code"] !== RUN_ID_REQUIRED_CODE) return false
+    this.trace("run_tool_refused", { turn_id: turnId, tool: name, reason: "missing_run_id" })
+    return true
   }
 
   async respond(request: TurnRequest): Promise<{ reply: string; totalTokens: number }> {
@@ -485,7 +534,14 @@ export class LLMResponder implements TurnResponder {
       { role: "user", content: request.content },
     ]
 
-    const state: TurnState = { attempts: 0, proposed: false, nudged: false, runsStarted: 0, authorizationsRequested: 0 }
+    const state: TurnState = {
+      attempts: 0,
+      proposed: false,
+      nudged: false,
+      runsStarted: 0,
+      runsRequested: 0,
+      authorizationsRequested: 0,
+    }
     let totalTokens = 0
     let toolCalls = 0
     for (let round = 0; round < MAX_MODEL_ROUNDS; round++) {
@@ -515,6 +571,7 @@ export class LLMResponder implements TurnResponder {
           total_tokens: totalTokens,
           proposed: state.proposed,
           runs_started: state.runsStarted,
+          runs_requested: state.runsRequested,
           authorizations_requested: state.authorizationsRequested,
           features: [...features],
           tokens_left: tokens.length,
@@ -579,6 +636,7 @@ export class LLMResponder implements TurnResponder {
       total_tokens: totalTokens,
       proposed: state.proposed,
       runs_started: state.runsStarted,
+      runs_requested: state.runsRequested,
       authorizations_requested: state.authorizationsRequested,
       features: [...features],
       reason: "round_budget_exhausted",
