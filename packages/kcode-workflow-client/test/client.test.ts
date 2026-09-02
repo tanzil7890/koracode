@@ -44,7 +44,7 @@ describe("WorkflowControlPlaneClient", () => {
     expect(headers.get("x-request-id")).toMatch(/[0-9a-f-]{36}/)
 
     await client.runEvents("run-9", 41, 100)
-    expect(seen.url).toBe("https://kora.internal:8000/internal/kora/v1/runs/run-9/events?after_seq=41&limit=100")
+    expect(seen.url).toBe("https://kora.internal:8000/internal/kora/v1/runs/run-9/events?after=41&limit=100")
 
     await client.runArtifacts("run-9")
     expect(seen.url).toBe("https://kora.internal:8000/internal/kora/v1/runs/run-9/artifacts")

@@ -36,6 +36,21 @@ export interface TurnCallback {
   /** One-use service tokens, one per gateway call (the gateway's jti replay
    * protection makes a single multi-call token impossible by design). */
   readonly tokens: readonly string[]
+  /** Control-plane feature grants for this turn ('propose', 'run'), parsed
+   * from body.callback.features. Absent means the legacy grant ['propose'];
+   * an explicit empty list means reads only. The gateway enforces the same
+   * scopes server-side — this only decides which tools the model even sees. */
+  readonly features?: readonly string[]
+}
+
+/** What a callback without an explicit features list is granted (12.6/12.7
+ * control planes never sent one and always expected the proposal tools). */
+export const DEFAULT_CALLBACK_FEATURES: readonly string[] = ["propose"]
+
+/** The effective feature grants for a turn — the single place the legacy
+ * default is applied, so the responder and the trace agree. */
+export function callbackFeatures(callback: TurnCallback | undefined): readonly string[] {
+  return callback?.features ?? DEFAULT_CALLBACK_FEATURES
 }
 
 export interface TurnRequest {
@@ -256,12 +271,19 @@ export class WorkflowServe {
     const history = this.bindings.rehydrate(historyRaw)
     const content = String(body["content"] ?? "")
     const callbackRaw = body["callback"] as Record<string, unknown> | undefined
+    // features: only an array of strings counts; anything else is "absent"
+    // and keeps the legacy ['propose'] grant (callbackFeatures applies it).
+    const featuresRaw = callbackRaw?.["features"]
+    const features = Array.isArray(featuresRaw)
+      ? featuresRaw.filter((feature): feature is string => typeof feature === "string")
+      : undefined
     const callback: TurnCallback | undefined =
       callbackRaw && typeof callbackRaw["gateway_url"] === "string"
         ? {
             gatewayUrl: String(callbackRaw["gateway_url"]),
             agentId: String(callbackRaw["agent_id"] ?? ""),
             tokens: Array.isArray(callbackRaw["tokens"]) ? (callbackRaw["tokens"] as string[]) : [],
+            ...(features === undefined ? {} : { features }),
           }
         : undefined
     const remoteTurnId = `rt_${crypto.randomUUID()}`
@@ -277,6 +299,7 @@ export class WorkflowServe {
       responder: this.responderName,
       history_messages: history.length,
       callback_tokens: callback?.tokens.length ?? 0,
+      callback_features: callback ? [...callbackFeatures(callback)] : [],
     })
 
     // The turn runs in the background — a model-backed responder takes tens

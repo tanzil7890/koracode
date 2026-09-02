@@ -1,18 +1,32 @@
-// Model-backed TurnResponder — Phase 12.7 steps 6–7 (the live-trial engine).
+// Model-backed TurnResponder — Phase 12.7 steps 6–7 (the live-trial engine),
+// extended in 12.8 step 4 with the feature-scoped run tools.
 //
-// An OpenAI-compatible tool-calling loop over EXACTLY the proposal tool
-// surface (read + validate/propose/status — resolveProposalTool is the only
-// lookup, so an injected request for bash/edit/apply cannot execute). Every
-// network call goes through the pinned egress policy: the model origin and
-// the Kora gateway, nothing else. Gateway calls consume one-use callback
-// tokens the control plane minted for this turn; when they run out, the
-// loop stops — a hard, control-plane-owned tool budget.
+// An OpenAI-compatible tool-calling loop over EXACTLY the tools the turn's
+// control-plane feature grants unlock: the read tools always, the proposal
+// tools with 'propose', the run tools with 'run' (resolveFeatureTool is the
+// only lookup, so an injected request for bash/edit/apply — or a run tool on
+// a propose-only turn — cannot execute). Every network call goes through the
+// pinned egress policy: the model origin and the Kora gateway, nothing else.
+// Gateway calls consume one-use callback tokens the control plane minted for
+// this turn; when they run out, the loop stops — a hard, control-plane-owned
+// tool budget.
 //
 // Engine quality (v7): the responder never sends an off-contract candidate.
 // A propose is intercepted and run through normalize → local lint → gateway
 // validate; only a candidate the control plane accepts is proposed, so a
 // rejected change set can no longer be a turn's outcome. Anything the engine
 // must not guess comes back to the model as precise, code-keyed guidance.
+//
+// Runs (12.8 step 4): a run acts on the SAVED definition and continues
+// independently of the chat. The responder pins the agent, links the run to
+// the turn, and traces start/control/wait — it never interprets a control as
+// done: the gateway's effective_status is passed to the model literally.
+//
+// Authorizations (12.8 step 7): a protected operation is only ever REQUESTED.
+// The responder pins workflow.* subjects to the turn's agent, links the
+// request to the turn, traces it, and hands the model the gateway's view plus
+// a literal status reminder — a human grants it in the product, and only
+// 'consumed' means the operation happened.
 
 import {
   PatchError,
@@ -23,11 +37,16 @@ import {
   type JsonObject,
   type RepairNote,
 } from "./candidate-repair"
-import { WorkflowControlPlaneClient } from "./client"
+import { ControlPlaneError, WorkflowControlPlaneClient } from "./client"
 import { assertAllowedUrl, type EgressPolicy } from "./egress"
-import { PROPOSAL_WORKFLOW_PROFILE } from "./profile"
-import type { EngineTrace, TurnRequest, TurnResponder } from "./serve"
-import { ToolDeniedError, WORKFLOW_PROPOSAL_TOOLS, WORKFLOW_READ_TOOLS, resolveProposalTool } from "./tools"
+import {
+  AUTHORIZE_WORKFLOW_PROFILE,
+  MANAGED_WORKFLOW_PROFILE,
+  PROPOSAL_WORKFLOW_PROFILE,
+  RUN_WORKFLOW_PROFILE,
+} from "./profile"
+import { callbackFeatures, type EngineTrace, type TurnRequest, type TurnResponder } from "./serve"
+import { ToolDeniedError, isAuthorizationToolId, resolveFeatureTool, toolsForFeatures, type RunWaitResult } from "./tools"
 
 const MAX_TOOL_CALLS = 10
 const MAX_MODEL_ROUNDS = 14
@@ -42,6 +61,8 @@ export interface LLMResponderOptions {
   readonly fetchImpl?: typeof fetch
   /** Structured log sink for proposal outcomes and denied tools; silent when omitted. */
   readonly trace?: EngineTrace
+  /** Sleep used by workflow_run_wait between polls; injectable for tests. */
+  readonly sleep?: (ms: number) => Promise<void>
 }
 
 interface ChatMessage {
@@ -64,6 +85,10 @@ interface TurnState {
   attempts: number
   proposed: boolean
   nudged: boolean
+  /** Runs started this turn (12.8) — reported in the loop summary trace. */
+  runsStarted: number
+  /** Authorization requests created this turn (12.8 step 7). */
+  authorizationsRequested: number
 }
 
 function isObject(value: unknown): value is JsonObject {
@@ -109,6 +134,57 @@ export const SCHEMA_HINT =
   "a script reference to the singular wiring) and validates it with the control plane BEFORE proposing. A tool result " +
   "with status 'not_proposed' lists 'guidance' — fix EXACTLY those points and call workflow_propose again with a NEW " +
   "idempotency_key. A result with status 'proposed' means the change set exists: stop and summarize it."
+
+/** The run-side procedure, appended to the system prompt ONLY when the turn's
+ * callback grants the 'run' feature. Idempotency/command/input ids derive
+ * from the turn id so a retried turn replays instead of starting twice. */
+export function runProcedure(turnId: string): string {
+  return (
+    `\n\nRUN PROCEDURE — follow it exactly:\n` +
+    `1. Start a run ONLY when the user explicitly asks to run, execute, or start the workflow — never to test or check a ` +
+    `proposal, and never more than one run per request unless the user asks for more.\n` +
+    `2. workflow_run_start runs the SAVED workflow; source defaults to 'published' — say so in your answer. Use ` +
+    `idempotency_key '${turnId}:run'. If the tool result is an error with code NO_PUBLISHED_VERSION, do not retry: tell the ` +
+    `user there is no published version and OFFER source 'draft_snapshot' (runs the current draft) — start it only after ` +
+    `they confirm.\n` +
+    `3. After starting you may call workflow_run_wait ONCE (bounded polling; every poll spends a gateway token). Then report ` +
+    `run_id, status, and legal_controls VERBATIM from the latest resource, and say the run continues independently of this chat.\n` +
+    `4. Controls: request only a command listed in the resource's legal_controls, with command_id '${turnId}:<command>'. ` +
+    `Accepted ≠ effective. NEVER say a run is paused, resumed, or cancelled unless the control result's effective_status is ` +
+    `'effective'; 'pending' means requested but not yet applied, 'unsupported' means the runtime cannot do it, 'failed' ` +
+    `means it did not happen. Quote effective_status literally.\n` +
+    `5. workflow_run_submit_input only answers a request the run itself declared in waiting_request (use that request_id; ` +
+    `input_id '${turnId}:input'). It is never a way to steer, instruct, or modify the run.\n` +
+    `6. When the user references \`@run <id>\`, read it FIRST with workflow_run_get (plus workflow_run_events / ` +
+    `workflow_run_artifacts as needed) before answering, and never modify the running definition — a run executes the ` +
+    `saved definition it started with.`
+  )
+}
+
+/** The authorization procedure, appended to the system prompt ONLY when the
+ * turn's callback grants the 'authorize' feature. The idempotency key derives
+ * from the turn id so a retried turn replays instead of requesting twice. */
+export function authorizationProcedure(turnId: string): string {
+  return (
+    `\n\nAUTHORIZATION PROCEDURE — follow it exactly:\n` +
+    `1. A protected operation (publish, restore, set a version live, change or delete a schedule, cancel a batch) is never ` +
+    `performed by you. You may only REQUEST an authorization for it, and only when the user explicitly asks for that operation.\n` +
+    `2. Call workflow_request_authorization ONCE per operation with a fresh idempotency_key '${turnId}:auth' (':auth2' only ` +
+    `for a second, distinct operation the user asked for), the subject_kind, the minimal subject_ref for that kind, and a ` +
+    `one-sentence rationale quoting the user's request.\n` +
+    `3. Report the authorization_id and status VERBATIM and say that a human must approve it in the Authorizations panel. ` +
+    `status 'requested' means NOTHING has happened: never say the workflow was published, restored, or set live, the ` +
+    `schedule changed or deleted, or the batch cancelled unless a readback shows status 'consumed'.\n` +
+    `4. If the user asks whether it was approved, you may poll AT MOST ONCE with workflow_authorization_get (one gateway ` +
+    `token); otherwise tell them where to look.\n` +
+    `5. If the request fails with code AUTHORIZATION_SUBJECT_NOOP (nothing to do — e.g. the head is identical to the live ` +
+    `version) or AUTHORIZATION_IDEMPOTENCY_CONFLICT (an equivalent request already exists), do NOT re-request: explain the ` +
+    `code to the user (for a conflict, point them to the existing authorization). AUTHORIZATION_SUBJECT_UNSUPPORTED lists ` +
+    `the allowed kinds in 'details.supported'; AUTHORIZATION_SUBJECT_REF_INVALID and AUTHORIZATION_SUBJECT_NOT_FOUND mean ` +
+    `the reference is wrong — ask the user for the correct id instead of guessing; PERMISSION_DENIED means the user may not ` +
+    `request this — say so.`
+  )
+}
 
 export class LLMResponder implements TurnResponder {
   readonly name = "llm"
@@ -202,16 +278,75 @@ export class LLMResponder implements TurnResponder {
   }
 
   /** The tool dispatch with the proposal interception. Read tools pass
-   * straight through (head is snapshotted); validate/propose are guarded. */
+   * straight through (head is snapshotted); validate/propose are guarded;
+   * run start/control/wait are traced. Only the tools the turn's features
+   * unlock resolve at all. */
   private async runTool(
     turnId: string,
     name: string,
     args: Record<string, unknown>,
     client: WorkflowControlPlaneClient,
     state: TurnState,
+    features: readonly string[],
   ): Promise<unknown> {
-    const tool = resolveProposalTool(name)
+    const tool = resolveFeatureTool(features, name)
     const agentId = String(args["agent_id"])
+    const context = { sleep: this.options.sleep }
+    if (name === "workflow_run_start") {
+      // Link the run to this authoring turn for the audit trail; the model's
+      // schema has no turn_id field, so this is engine-set, never model-set.
+      args["turn_id"] = turnId
+      const output = await tool.execute(client, args, context)
+      const resource = isObject(output) ? output : {}
+      const definition = isObject(resource["definition"]) ? resource["definition"] : {}
+      state.runsStarted += 1
+      this.trace("run_started", {
+        turn_id: turnId,
+        run_id: resource["run_id"],
+        status: resource["status"],
+        source: definition["source"] ?? (typeof args["source"] === "string" && args["source"] ? args["source"] : "published"),
+      })
+      return output
+    }
+    if (name === "workflow_run_control") {
+      const output = await tool.execute(client, args, context)
+      const result = isObject(output) ? output : {}
+      this.trace("run_control", {
+        turn_id: turnId,
+        run_id: args["run_id"],
+        command: args["command"],
+        effective_status: result["effective_status"],
+      })
+      return output
+    }
+    if (name === "workflow_run_wait") {
+      const output = (await tool.execute(client, args, context)) as RunWaitResult
+      this.trace("run_wait", { turn_id: turnId, run_id: args["run_id"], polls: output.polls, reason: output.reason })
+      return output
+    }
+    if (name === "workflow_request_authorization") {
+      // Engine-set linkage, and workflow.* subjects are pinned to the turn's
+      // agent exactly like every agent-scoped tool — the model never chooses
+      // which workflow a publish/restore/set_live request is about.
+      args["turn_id"] = turnId
+      const subjectKind = typeof args["subject_kind"] === "string" ? args["subject_kind"] : ""
+      if (subjectKind.startsWith("workflow.")) {
+        const ref = isObject(args["subject_ref"]) ? { ...args["subject_ref"] } : {}
+        ref["agent_id"] = agentId
+        args["subject_ref"] = ref
+      }
+      const output = await tool.execute(client, args, context)
+      const view = isObject(output) ? output : {}
+      state.authorizationsRequested += 1
+      this.trace("authorization_requested", {
+        turn_id: turnId,
+        authorization_id: view["authorization_id"],
+        subject_kind: view["subject_kind"] ?? subjectKind,
+        status: view["status"],
+        replayed: view["replayed"] === true,
+      })
+      return output
+    }
     if (name === "workflow_head") {
       const output = await tool.execute(client, args)
       state.head = asHead(output) ?? state.head
@@ -280,7 +415,7 @@ export class LLMResponder implements TurnResponder {
       })
       return { ...output, repairs: prepared.repairs }
     }
-    return tool.execute(client, args)
+    return tool.execute(client, args, context)
   }
 
   async respond(request: TurnRequest): Promise<{ reply: string; totalTokens: number }> {
@@ -300,19 +435,33 @@ export class LLMResponder implements TurnResponder {
           })
         : null
 
+    // Feature grants decide which tools the model even sees: reads always,
+    // proposal tools with 'propose', run tools with 'run'. A callback without
+    // a features list keeps the legacy ['propose'] grant.
+    const features = callbackFeatures(callback)
+    const proposeEnabled = features.includes("propose")
+    const runEnabled = features.includes("run")
+    const authorizeEnabled = features.includes("authorize")
+
     const toolDefs = client
-      ? [...WORKFLOW_READ_TOOLS, ...WORKFLOW_PROPOSAL_TOOLS].map((tool) => ({
+      ? toolsForFeatures(features).map((tool) => ({
           type: "function",
           function: { name: tool.id, description: tool.description, parameters: tool.parameters },
         }))
       : undefined
 
+    const profilePrompt = proposeEnabled
+      ? PROPOSAL_WORKFLOW_PROFILE.prompt + "\n\n" + SCHEMA_HINT
+      : runEnabled
+        ? RUN_WORKFLOW_PROFILE.prompt
+        : authorizeEnabled
+          ? AUTHORIZE_WORKFLOW_PROFILE.prompt
+          : MANAGED_WORKFLOW_PROFILE.prompt
     const system =
-      PROPOSAL_WORKFLOW_PROFILE.prompt +
-      "\n\n" +
-      SCHEMA_HINT +
-      (callback
-        ? `\n\nThe workflow agent id is ${callback.agentId}. WORKFLOW-CHANGE PROCEDURE — follow it exactly:\n` +
+      profilePrompt +
+      (callback ? `\n\nThe workflow agent id is ${callback.agentId}.` : "") +
+      (callback && proposeEnabled
+        ? ` WORKFLOW-CHANGE PROCEDURE — follow it exactly:\n` +
           `1. Call workflow_head to read the current graph, generation, and content_hash.\n` +
           `2. For a SMALL edit (rename, retarget an edge, change one node's fields, add/remove a single node or edge), ` +
           `propose with patch_ops — surgical operations against the head: ` +
@@ -327,14 +476,16 @@ export class LLMResponder implements TurnResponder {
           `'${request.turnId}'. If the result has status 'not_proposed', apply its 'guidance' and propose again with ` +
           `idempotency_key '${request.turnId}:retry1' (then ':retry2', ':retry3').\n` +
           `5. Once a result has status 'proposed', summarize what you proposed and its risk level.`
-        : "")
+        : "") +
+      (callback && runEnabled ? runProcedure(request.turnId) : "") +
+      (callback && authorizeEnabled ? authorizationProcedure(request.turnId) : "")
     const messages: ChatMessage[] = [
       { role: "system", content: system },
       ...request.history.map((m) => ({ role: m.role, content: m.content }) as ChatMessage),
       { role: "user", content: request.content },
     ]
 
-    const state: TurnState = { attempts: 0, proposed: false, nudged: false }
+    const state: TurnState = { attempts: 0, proposed: false, nudged: false, runsStarted: 0, authorizationsRequested: 0 }
     let totalTokens = 0
     let toolCalls = 0
     for (let round = 0; round < MAX_MODEL_ROUNDS; round++) {
@@ -363,6 +514,9 @@ export class LLMResponder implements TurnResponder {
           tool_calls: toolCalls,
           total_tokens: totalTokens,
           proposed: state.proposed,
+          runs_started: state.runsStarted,
+          authorizations_requested: state.authorizationsRequested,
+          features: [...features],
           tokens_left: tokens.length,
         })
         return { reply: message.content ?? "", totalTokens }
@@ -379,19 +533,38 @@ export class LLMResponder implements TurnResponder {
             const args = JSON.parse(call.function.arguments || "{}") as Record<string, unknown>
             // The turn is bound to ONE workflow: the model never chooses the
             // agent (a mistyped id was a whole-turn 404 in the live trials).
+            // Run ids pass through untouched — a run is not scoped by the
+            // agent path, the gateway checks its ownership server-side.
             args["agent_id"] = callback!.agentId
-            const output = await this.runTool(request.turnId, call.function.name, args, client, state)
+            const output = await this.runTool(request.turnId, call.function.name, args, client, state, features)
             result = JSON.stringify(output).slice(0, TOOL_RESULT_CAP)
           } catch (error) {
             // Denied or failing tools surface as data, never as execution.
+            // A gateway `{code, message}` detail is passed through so the
+            // model can act on the code (e.g. NO_PUBLISHED_VERSION).
             const name = error instanceof Error ? error.name : "Error"
+            const gateway = error instanceof ControlPlaneError ? error : undefined
             this.trace(name === "ToolDeniedError" ? "tool_denied" : "tool_failed", {
               turn_id: request.turnId,
               tool: call.function.name,
               error: name,
+              ...(gateway ? { status: gateway.status, code: gateway.code ?? null } : {}),
             })
+            if (name === "ToolDeniedError" && isAuthorizationToolId(call.function.name) && !features.includes("authorize")) {
+              // The model reached for an authorization tool on a turn the
+              // control plane did not grant 'authorize' to — worth its own line.
+              this.trace("authorization_denied_tool", {
+                turn_id: request.turnId,
+                tool: call.function.name,
+                features: [...features],
+              })
+            }
             result = JSON.stringify({
               error: error instanceof Error ? `${error.name}: ${error.message.slice(0, 300)}` : "tool failed",
+              ...(gateway ? { status: gateway.status } : {}),
+              ...(gateway?.code ? { code: gateway.code } : {}),
+              ...(gateway?.detail ? { message: gateway.detail } : {}),
+              ...(gateway?.extra ? { details: gateway.extra } : {}),
             })
           }
         }
@@ -405,6 +578,9 @@ export class LLMResponder implements TurnResponder {
       tool_calls: toolCalls,
       total_tokens: totalTokens,
       proposed: state.proposed,
+      runs_started: state.runsStarted,
+      authorizations_requested: state.authorizationsRequested,
+      features: [...features],
       reason: "round_budget_exhausted",
     })
     return { reply: "(turn ended: model round budget exhausted)", totalTokens }
