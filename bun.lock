@@ -601,6 +601,19 @@
         "@typescript/native-preview": "catalog:",
       },
     },
+    "packages/kcode-workflow-runtime": {
+      "name": "@koracode/kcode-workflow-runtime",
+      "version": "0.0.0",
+      "dependencies": {
+        "@koracode/kcode-workflow-contracts": "workspace:*",
+        "ajv": "8.20.0",
+      },
+      "devDependencies": {
+        "@tsconfig/bun": "catalog:",
+        "@types/bun": "catalog:",
+        "@typescript/native-preview": "catalog:",
+      },
+    },
     "packages/llm": {
       "name": "@opencode-ai/llm",
       "version": "1.18.4",
@@ -1897,6 +1910,8 @@
     "@koracode/kcode-workflow-client": ["@koracode/kcode-workflow-client@workspace:packages/kcode-workflow-client"],
 
     "@koracode/kcode-workflow-contracts": ["@koracode/kcode-workflow-contracts@workspace:packages/kcode-workflow-contracts"],
+
+    "@koracode/kcode-workflow-runtime": ["@koracode/kcode-workflow-runtime@workspace:packages/kcode-workflow-runtime"],
 
     "@koracode/koracode-core": ["@koracode/koracode-core@workspace:packages/opencode"],
 

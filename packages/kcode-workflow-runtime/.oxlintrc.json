@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicolo-ribaudo/oxc-project.github.io/refs/heads/json-schema/src/public/.oxlintrc.schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@koracode/kcode-workflow-runtime",
+  "version": "0.0.0",
+  "description": "Pure, hermetic candidate workflow kernel: compiler, validator, and graph state machine",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check:mutation": "bun script/mutation.ts",
+    "check:purity": "bun script/purity.ts",
+    "test": "bun test test",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "@koracode/kcode-workflow-contracts": "workspace:*",
+    "ajv": "8.20.0"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@typescript/native-preview": "catalog:"
+  }
+}
