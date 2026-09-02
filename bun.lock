@@ -580,6 +580,15 @@
         "@types/yargs": "17.0.33",
       },
     },
+    "packages/kcode-workflow-client": {
+      "name": "@koracode/kcode-workflow-client",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@tsconfig/bun": "catalog:",
+        "@types/bun": "catalog:",
+        "@typescript/native-preview": "catalog:",
+      },
+    },
     "packages/kcode-workflow-contracts": {
       "name": "@koracode/kcode-workflow-contracts",
       "version": "0.0.0",
@@ -1884,6 +1893,8 @@
     "@koracode/kcode-laminar": ["@koracode/kcode-laminar@workspace:packages/kcode-laminar"],
 
     "@koracode/kcode-serve": ["@koracode/kcode-serve@workspace:packages/kcode-serve"],
+
+    "@koracode/kcode-workflow-client": ["@koracode/kcode-workflow-client@workspace:packages/kcode-workflow-client"],
 
     "@koracode/kcode-workflow-contracts": ["@koracode/kcode-workflow-contracts@workspace:packages/kcode-workflow-contracts"],
 

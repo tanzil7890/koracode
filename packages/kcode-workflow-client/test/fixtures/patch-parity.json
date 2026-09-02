@@ -1,0 +1,835 @@
+{
+ "base": {
+  "version": 3,
+  "name": "Base",
+  "entry": "n1",
+  "variables": [],
+  "nodes": [
+   {
+    "id": "n1",
+    "type": "agent",
+    "name": "Step one",
+    "instruction": "Open the page",
+    "position": {
+     "x": 0,
+     "y": 0
+    }
+   },
+   {
+    "id": "ok",
+    "type": "success",
+    "position": {
+     "x": 300,
+     "y": 0
+    }
+   },
+   {
+    "id": "err",
+    "type": "error",
+    "position": {
+     "x": 300,
+     "y": 200
+    }
+   }
+  ],
+  "edges": [
+   {
+    "id": "e1",
+    "from": "n1",
+    "to": "ok",
+    "when": "success"
+   },
+   {
+    "id": "e2",
+    "from": "n1",
+    "to": "err",
+    "when": "error"
+   }
+  ]
+ },
+ "cases": [
+  {
+   "name": "add_node",
+   "ops": [
+    {
+     "op": "add_node",
+     "node": {
+      "id": "n2",
+      "type": "agent",
+      "name": "Two",
+      "instruction": "x",
+      "position": {
+       "x": 1,
+       "y": 1
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "result": {
+    "version": 3,
+    "name": "Base",
+    "entry": "n1",
+    "variables": [],
+    "nodes": [
+     {
+      "id": "n1",
+      "type": "agent",
+      "name": "Step one",
+      "instruction": "Open the page",
+      "position": {
+       "x": 0,
+       "y": 0
+      }
+     },
+     {
+      "id": "ok",
+      "type": "success",
+      "position": {
+       "x": 300,
+       "y": 0
+      }
+     },
+     {
+      "id": "err",
+      "type": "error",
+      "position": {
+       "x": 300,
+       "y": 200
+      }
+     },
+     {
+      "id": "n2",
+      "type": "agent",
+      "name": "Two",
+      "instruction": "x",
+      "position": {
+       "x": 1,
+       "y": 1
+      }
+     }
+    ],
+    "edges": [
+     {
+      "id": "e1",
+      "from": "n1",
+      "to": "ok",
+      "when": "success"
+     },
+     {
+      "id": "e2",
+      "from": "n1",
+      "to": "err",
+      "when": "error"
+     }
+    ]
+   }
+  },
+  {
+   "name": "set_node",
+   "ops": [
+    {
+     "op": "set_node",
+     "node": {
+      "id": "n1",
+      "type": "agent",
+      "name": "Renamed",
+      "instruction": "y",
+      "position": {
+       "x": 0,
+       "y": 0
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "result": {
+    "version": 3,
+    "name": "Base",
+    "entry": "n1",
+    "variables": [],
+    "nodes": [
+     {
+      "id": "n1",
+      "type": "agent",
+      "name": "Renamed",
+      "instruction": "y",
+      "position": {
+       "x": 0,
+       "y": 0
+      }
+     },
+     {
+      "id": "ok",
+      "type": "success",
+      "position": {
+       "x": 300,
+       "y": 0
+      }
+     },
+     {
+      "id": "err",
+      "type": "error",
+      "position": {
+       "x": 300,
+       "y": 200
+      }
+     }
+    ],
+    "edges": [
+     {
+      "id": "e1",
+      "from": "n1",
+      "to": "ok",
+      "when": "success"
+     },
+     {
+      "id": "e2",
+      "from": "n1",
+      "to": "err",
+      "when": "error"
+     }
+    ]
+   }
+  },
+  {
+   "name": "remove_node_cascades_edges",
+   "ops": [
+    {
+     "op": "remove_node",
+     "id": "n1"
+    }
+   ],
+   "ok": true,
+   "result": {
+    "version": 3,
+    "name": "Base",
+    "entry": "n1",
+    "variables": [],
+    "nodes": [
+     {
+      "id": "ok",
+      "type": "success",
+      "position": {
+       "x": 300,
+       "y": 0
+      }
+     },
+     {
+      "id": "err",
+      "type": "error",
+      "position": {
+       "x": 300,
+       "y": 200
+      }
+     }
+    ],
+    "edges": []
+   }
+  },
+  {
+   "name": "add_edge",
+   "ops": [
+    {
+     "op": "add_edge",
+     "edge": {
+      "id": "e3",
+      "from": "n1",
+      "to": "err",
+      "when": "error"
+     }
+    }
+   ],
+   "ok": true,
+   "result": {
+    "version": 3,
+    "name": "Base",
+    "entry": "n1",
+    "variables": [],
+    "nodes": [
+     {
+      "id": "n1",
+      "type": "agent",
+      "name": "Step one",
+      "instruction": "Open the page",
+      "position": {
+       "x": 0,
+       "y": 0
+      }
+     },
+     {
+      "id": "ok",
+      "type": "success",
+      "position": {
+       "x": 300,
+       "y": 0
+      }
+     },
+     {
+      "id": "err",
+      "type": "error",
+      "position": {
+       "x": 300,
+       "y": 200
+      }
+     }
+    ],
+    "edges": [
+     {
+      "id": "e1",
+      "from": "n1",
+      "to": "ok",
+      "when": "success"
+     },
+     {
+      "id": "e2",
+      "from": "n1",
+      "to": "err",
+      "when": "error"
+     },
+     {
+      "id": "e3",
+      "from": "n1",
+      "to": "err",
+      "when": "error"
+     }
+    ]
+   }
+  },
+  {
+   "name": "remove_edge",
+   "ops": [
+    {
+     "op": "remove_edge",
+     "id": "e1"
+    }
+   ],
+   "ok": true,
+   "result": {
+    "version": 3,
+    "name": "Base",
+    "entry": "n1",
+    "variables": [],
+    "nodes": [
+     {
+      "id": "n1",
+      "type": "agent",
+      "name": "Step one",
+      "instruction": "Open the page",
+      "position": {
+       "x": 0,
+       "y": 0
+      }
+     },
+     {
+      "id": "ok",
+      "type": "success",
+      "position": {
+       "x": 300,
+       "y": 0
+      }
+     },
+     {
+      "id": "err",
+      "type": "error",
+      "position": {
+       "x": 300,
+       "y": 200
+      }
+     }
+    ],
+    "edges": [
+     {
+      "id": "e2",
+      "from": "n1",
+      "to": "err",
+      "when": "error"
+     }
+    ]
+   }
+  },
+  {
+   "name": "retarget_edge_reuse_id",
+   "ops": [
+    {
+     "op": "remove_edge",
+     "id": "e2"
+    },
+    {
+     "op": "add_edge",
+     "edge": {
+      "id": "e2",
+      "from": "n1",
+      "to": "ok",
+      "when": "error"
+     }
+    }
+   ],
+   "ok": true,
+   "result": {
+    "version": 3,
+    "name": "Base",
+    "entry": "n1",
+    "variables": [],
+    "nodes": [
+     {
+      "id": "n1",
+      "type": "agent",
+      "name": "Step one",
+      "instruction": "Open the page",
+      "position": {
+       "x": 0,
+       "y": 0
+      }
+     },
+     {
+      "id": "ok",
+      "type": "success",
+      "position": {
+       "x": 300,
+       "y": 0
+      }
+     },
+     {
+      "id": "err",
+      "type": "error",
+      "position": {
+       "x": 300,
+       "y": 200
+      }
+     }
+    ],
+    "edges": [
+     {
+      "id": "e1",
+      "from": "n1",
+      "to": "ok",
+      "when": "success"
+     },
+     {
+      "id": "e2",
+      "from": "n1",
+      "to": "ok",
+      "when": "error"
+     }
+    ]
+   }
+  },
+  {
+   "name": "set_settings",
+   "ops": [
+    {
+     "op": "set_settings",
+     "settings": {
+      "timeout_sec": 30
+     }
+    }
+   ],
+   "ok": true,
+   "result": {
+    "version": 3,
+    "name": "Base",
+    "entry": "n1",
+    "variables": [],
+    "nodes": [
+     {
+      "id": "n1",
+      "type": "agent",
+      "name": "Step one",
+      "instruction": "Open the page",
+      "position": {
+       "x": 0,
+       "y": 0
+      }
+     },
+     {
+      "id": "ok",
+      "type": "success",
+      "position": {
+       "x": 300,
+       "y": 0
+      }
+     },
+     {
+      "id": "err",
+      "type": "error",
+      "position": {
+       "x": 300,
+       "y": 200
+      }
+     }
+    ],
+    "edges": [
+     {
+      "id": "e1",
+      "from": "n1",
+      "to": "ok",
+      "when": "success"
+     },
+     {
+      "id": "e2",
+      "from": "n1",
+      "to": "err",
+      "when": "error"
+     }
+    ],
+    "settings": {
+     "timeout_sec": 30
+    }
+   }
+  },
+  {
+   "name": "empty_list",
+   "ops": [],
+   "ok": false,
+   "error": "patch must be a non-empty list of operations"
+  },
+  {
+   "name": "not_object",
+   "ops": [
+    "nope"
+   ],
+   "ok": false,
+   "error": "operation 0 is not an object"
+  },
+  {
+   "name": "unknown_op",
+   "ops": [
+    {
+     "op": "rename_node",
+     "id": "n1"
+    }
+   ],
+   "ok": false,
+   "error": "operation 0: unknown op 'rename_node'"
+  },
+  {
+   "name": "missing_op",
+   "ops": [
+    {
+     "node": {
+      "id": "x"
+     }
+    }
+   ],
+   "ok": false,
+   "error": "operation 0: unknown op ''"
+  },
+  {
+   "name": "add_existing_node",
+   "ops": [
+    {
+     "op": "add_node",
+     "node": {
+      "id": "n1",
+      "type": "agent"
+     }
+    }
+   ],
+   "ok": false,
+   "error": "operation 0: node n1 already exists"
+  },
+  {
+   "name": "set_missing_node",
+   "ops": [
+    {
+     "op": "set_node",
+     "node": {
+      "id": "zz",
+      "type": "agent"
+     }
+    }
+   ],
+   "ok": false,
+   "error": "operation 0: node zz does not exist"
+  },
+  {
+   "name": "remove_missing_node",
+   "ops": [
+    {
+     "op": "remove_node",
+     "id": "zz"
+    }
+   ],
+   "ok": false,
+   "error": "operation 0: node zz does not exist"
+  },
+  {
+   "name": "add_existing_edge",
+   "ops": [
+    {
+     "op": "add_edge",
+     "edge": {
+      "id": "e1",
+      "from": "n1",
+      "to": "ok",
+      "when": "success"
+     }
+    }
+   ],
+   "ok": false,
+   "error": "operation 0: edge e1 already exists"
+  },
+  {
+   "name": "remove_missing_edge",
+   "ops": [
+    {
+     "op": "remove_edge",
+     "id": "e9"
+    }
+   ],
+   "ok": false,
+   "error": "operation 0: edge e9 does not exist"
+  },
+  {
+   "name": "settings_not_object",
+   "ops": [
+    {
+     "op": "set_settings",
+     "settings": "x"
+    }
+   ],
+   "ok": false,
+   "error": "operation 0: set_settings requires an object"
+  },
+  {
+   "name": "filesystem_patch",
+   "ops": [
+    {
+     "op": "add_node",
+     "node": {
+      "id": "n9",
+      "type": "agent",
+      "instruction": "diff --git a/x b/x"
+     }
+    }
+   ],
+   "ok": false,
+   "error": "filesystem patches are not accepted"
+  },
+  {
+   "name": "add_node_without_id",
+   "ops": [
+    {
+     "op": "add_node",
+     "node": {
+      "type": "agent"
+     }
+    }
+   ],
+   "ok": false,
+   "error": "operation 0: add_node requires a node object with an id"
+  },
+  {
+   "name": "too_many_ops",
+   "ops": [
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    },
+    {
+     "op": "set_settings",
+     "settings": {}
+    }
+   ],
+   "ok": false,
+   "error": "patch exceeds 50 operations"
+  }
+ ]
+}

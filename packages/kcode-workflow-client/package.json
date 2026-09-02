@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@koracode/kcode-workflow-client",
+  "version": "0.0.0",
+  "description": "Managed read-only Kora control-plane client, workflow tools, and deny-by-default authoring profile (Roadmap 12 Phase 12.4)",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test test",
+    "typecheck": "tsgo --noEmit"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@typescript/native-preview": "catalog:"
+  }
+}
